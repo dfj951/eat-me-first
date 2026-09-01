@@ -80,7 +80,13 @@
 
         <div id="dislikedHost"></div>
 
-        <button class="btn-ghost" id="empty" type="button">Empty the fridge</button>
+        <div class="tools">
+          <button class="btn-ghost" id="backup" type="button">Back up</button>
+          <button class="btn-ghost" id="restore" type="button">Restore</button>
+          <button class="btn-ghost" id="empty" type="button">Empty the fridge</button>
+          <input type="file" id="restoreFile" accept="application/json,.json" hidden>
+        </div>
+        <p class="err" id="toolsNote"></p>
       </div>
     </section>
 

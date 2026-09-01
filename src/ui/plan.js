@@ -34,6 +34,12 @@ export function renderPlan () {
   /* Undo sits at the top of the plan, right where the tap happened.
      It stays put until it's used or waved away — a strip that vanishes on
      a timer is no use to someone who has just looked up from the hob. */
+  const { meals, rescued } = state.tally()
+  const tally = meals
+    ? `<p class="tally">${meals} meal${meals === 1 ? '' : 's'} cooked${
+        rescued ? ` &middot; <b>${rescued}</b> thing${rescued === 1 ? '' : 's'} rescued` : ''}</p>`
+    : ''
+
   const undo = state.lastDismissed
     ? `<div class="undo">
         <span>Turned down <b>${esc(state.lastDismissed)}</b>. It won’t be suggested again.</span>
@@ -59,6 +65,7 @@ export function renderPlan () {
           <button class="nope" type="button" data-nope="${esc(tonight.meal.name)}">Not for me</button>
         </div>
         <p class="made">Made with ${esc(lower(tonight.uses))}.</p>
+        <button class="btn cooked" type="button" id="cookedIt">I cooked this</button>
       </div>`
     : `
       <div class="tonight">
@@ -158,10 +165,14 @@ export function renderPlan () {
 
   const week = `<div class="week">${rows.join('')}</div>`
 
-  out.innerHTML = undo + head + risk + unknownNote + week
+  out.innerHTML = undo + tally + head + risk + unknownNote + week
 
   out.querySelectorAll('[data-freeze]').forEach(button =>
     button.addEventListener('click', () => state.freeze(Number(button.dataset.freeze))))
+
+  // Closing over tonight rather than stashing ids in the markup
+  document.getElementById('cookedIt')?.addEventListener('click', () =>
+    state.cookMeal(tonight.meal.name, tonight.usedIds, tonight.saves))
 
   out.querySelectorAll('[data-nope]').forEach(button =>
     button.addEventListener('click', () => state.dislike(button.dataset.nope)))

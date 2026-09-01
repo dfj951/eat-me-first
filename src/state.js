@@ -12,7 +12,8 @@
 import { FOODS, freezeLife, thawLife } from './data/foods.js'
 import { inDays } from './lib/dates.js'
 import { loadFridge, saveFridge, loadMeals, saveMeals, clearFridge,
-  loadRecent, saveRecent, loadDislikes, saveDislikes } from './lib/store.js'
+  loadRecent, saveRecent, loadDislikes, saveDislikes,
+  loadHistory, saveHistory } from './lib/store.js'
 
 export const fridge = loadFridge()
 export const myMeals = loadMeals()
@@ -26,6 +27,11 @@ const RECENT_MAX = 14
    app invents and the classics. Nothing is ever lost: everything here can
    be put back from the list in the fridge panel. */
 export const disliked = loadDislikes()
+
+/* What you've actually cooked. The app plans, but until you tell it what
+   happened the quantities drift out of date within days — this is the
+   half of the loop that keeps the fridge honest. */
+export const history = loadHistory()
 
 function remember (key) {
   const at = recent.indexOf(key)
@@ -51,6 +57,7 @@ function changed () {
   saveMeals(myMeals)
   saveRecent(recent)
   saveDislikes(disliked)
+  saveHistory(history)
   for (const fn of listeners) fn()
 }
 
@@ -119,6 +126,72 @@ export function updateItem (id, changes) {
   if (changes.uses) item.uses = Math.max(1, Math.min(20, changes.uses))
   if ('role' in changes) item.role = changes.role || null
   changed()
+}
+
+/**
+ * You cooked tonight's meal. Spend what it used, drop anything that has
+ * run out, and note it down so the fridge stays true without you having
+ * to correct it by hand.
+ */
+export function cookMeal (name, usedIds = [], rescued = []) {
+  const gone = []
+
+  for (const id of usedIds) {
+    const item = fridge.find(i => i.id === id)
+    if (!item || item.openEnded) continue // a bottle of oil doesn't run down
+
+    const left = usesOf(item) - 1
+    if (left <= 0) gone.push(id)
+    else item.uses = left
+  }
+
+  for (const id of gone) {
+    const at = fridge.findIndex(i => i.id === id)
+    if (at > -1) fridge.splice(at, 1)
+  }
+
+  history.unshift({
+    on: inDays(0),
+    meal: name,
+    rescued: rescued.length,
+    finished: gone.length
+  })
+  if (history.length > 400) history.length = 400
+
+  changed()
+}
+
+/** How much this app has actually saved you, for the counter. */
+export function tally () {
+  return {
+    meals: history.length,
+    rescued: history.reduce((total, h) => total + (h.rescued ?? 0), 0)
+  }
+}
+
+/** Everything, as a plain object — for a backup file. */
+export function exportAll () {
+  return { app: 'eat-me-first', version: 1, exportedOn: inDays(0),
+    fridge, myMeals, disliked, recent, history }
+}
+
+/** Replace everything from a backup file. Returns false if it isn't one. */
+export function importAll (data) {
+  if (!data || data.app !== 'eat-me-first' || !Array.isArray(data.fridge)) return false
+
+  const swap = (target, source) => {
+    target.length = 0
+    if (Array.isArray(source)) target.push(...source)
+  }
+  swap(fridge, data.fridge)
+  swap(myMeals, data.myMeals)
+  swap(disliked, data.disliked)
+  swap(recent, data.recent)
+  swap(history, data.history)
+
+  nextId = Math.max(0, ...fridge.map(i => i.id ?? 0), ...myMeals.map(m => m.id ?? 0)) + 1
+  changed()
+  return true
 }
 
 /** Drop something from the recently-added chips. It stays searchable. */

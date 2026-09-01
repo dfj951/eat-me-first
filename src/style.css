@@ -284,6 +284,22 @@ button, input { font: inherit; color: inherit; }
 .panel-form .eyebrow { margin: 0; }
 .panel-name { margin: 0; font-size: 16px; font-weight: 600; }
 .panel-actions { display: flex; gap: 8px; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; }
+.tools .btn-ghost { flex: 1; min-width: 96px; }
+
+.btn.cooked { margin-top: 15px; width: 100%; }
+
+.tally {
+  margin: 0;
+  padding: 10px 22px;
+  border-bottom: 1px solid var(--hair);
+  font-family: "Azeret Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.tally b { color: var(--ok); }
 .linkish {
   background: none;
   border: 0;

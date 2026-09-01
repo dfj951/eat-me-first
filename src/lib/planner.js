@@ -219,6 +219,8 @@ export function planWeek (fridge, myMeals = [], disliked = []) {
           .filter(i => i.left === 0 && !i.frozen && i.expiresIn <= 7)
           .map(i => i.key),
         uses: used.map(i => i.key),
+        // the actual fridge entries, so 'I cooked this' can spend them
+        usedIds: used.map(i => i.id),
         // everything frozen this meal uses, and separately the ones that
         // actually need taking out the night before
         fromFreezer: used.filter(i => i.frozen).map(i => i.key),

@@ -63,6 +63,17 @@ export function mountFridge () {
         <span>keeps about ${food.days > 90 ? 'for ever' : food.days + ' days'}</span>
       </button>`)
 
+    // "milk, eggs, bread" in one go, on the sensible dates. Confirming a
+    // date for each of twelve things would defeat the point.
+    const several = typed.split(',').map(t => t.trim()).filter(Boolean)
+    if (several.length > 1) {
+      rows.push(`
+        <button class="hit bulk" type="button" data-bulk="1">
+          <b>Add all ${several.length}</b>
+          <span>${esc(several.join(', '))}</span>
+        </button>`)
+    }
+
     // Whatever they typed can always be added. Never a dead end.
     rows.push(`
       <button class="hit own" type="button" data-own="1"
@@ -90,6 +101,16 @@ export function mountFridge () {
     close()
   }
 
+  function addSeveral () {
+    for (const term of search.value.split(',').map(t => t.trim()).filter(Boolean)) {
+      const found = searchFoods(term, 1)[0]
+      if (found) state.addFood(found.key)
+      else state.addUnknown(term)
+    }
+    search.value = ''
+    close()
+  }
+
   search.addEventListener('input', () => { highlighted = -1; draw() })
 
   search.addEventListener('keydown', e => {
@@ -108,6 +129,7 @@ export function mountFridge () {
   hits.addEventListener('click', e => {
     const button = e.target.closest('.hit')
     if (!button) return
+    if (button.dataset.bulk) return addSeveral()
     pick(button.dataset.own ? matches.length : Number(button.dataset.i))
   })
 
@@ -125,6 +147,36 @@ export function mountFridge () {
 
   document.getElementById('empty')
     .addEventListener('click', () => state.emptyFridge())
+
+  /* There is no server and no sync, so this file is the only copy of
+     your fridge that isn't inside one browser. */
+  const note = document.getElementById('toolsNote')
+
+  document.getElementById('backup').addEventListener('click', () => {
+    const data = JSON.stringify(state.exportAll(), null, 2)
+    const url = URL.createObjectURL(new Blob([data], { type: 'application/json' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `eat-me-first-${new Date().toISOString().slice(0, 10)}.json`
+    link.click()
+    URL.revokeObjectURL(url)
+    note.textContent = ''
+  })
+
+  const fileInput = document.getElementById('restoreFile')
+  document.getElementById('restore').addEventListener('click', () => fileInput.click())
+
+  fileInput.addEventListener('change', async () => {
+    const file = fileInput.files?.[0]
+    if (!file) return
+    try {
+      const ok = state.importAll(JSON.parse(await file.text()))
+      note.textContent = ok ? '' : 'That file isn’t an Eat Me First backup.'
+    } catch {
+      note.textContent = 'Couldn’t read that file.'
+    }
+    fileInput.value = ''
+  })
 }
 
 /** One tap for whatever you keep buying. Hidden until there is something in it. */
