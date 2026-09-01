@@ -33,6 +33,7 @@ const CLASSIC_BONUS = 28 // a dish people can name beats a random assembly
 const MINE_BONUS = 34 // your own meals get first refusal
 const REPEAT_SHAPE = 26 // not the same shape twice in a row
 const REPEAT_NAME = 40
+const PUDDING_PENALTY = 200 // fruit is a last resort for an evening meal
 
 /** Turn the fridge into a mutable shelf the planner can take things off. */
 function toStock (fridge) {
@@ -53,21 +54,36 @@ function toStock (fridge) {
  */
 function buildFromShape (shape, stock, day) {
   const taken = new Set()
+  // Two punnets of grapes are still just grapes: one meal never uses the
+  // same food twice, or you get "Banana and banana".
+  const usedFoods = new Set()
   const chosen = {}
   let score = 0
 
   for (const slot of shape.slots) {
     const candidates = stock
-      .filter(s => s.left > 0 && s.expiresIn >= day && !taken.has(s.id) && slotFits(slot, s.key))
+      .filter(s => s.left > 0 && s.expiresIn >= day &&
+        !taken.has(s.id) && !usedFoods.has(s.key) && slotFits(slot, s.key))
       .sort((a, b) => rescueValue(b.expiresIn - day) - rescueValue(a.expiresIn - day))
 
-    const got = candidates.slice(0, slot.max)
+    // One food per slot as well as per meal: a slot taking three
+    // vegetables should be three different ones, not the same thing
+    // out of three different bags.
+    const got = []
+    const inSlot = new Set()
+    for (const c of candidates) {
+      if (inSlot.has(c.key)) continue
+      inSlot.add(c.key)
+      got.push(c)
+      if (got.length === slot.max) break
+    }
 
     // Can't make it? Then it isn't on the menu.
     if (got.length < slot.min) return null
 
     for (const item of got) {
       taken.add(item.id)
+      usedFoods.add(item.key)
       ;(chosen[slot.kind] ??= []).push(item)
       score += rescueValue(item.expiresIn - day) + (slot.kind === 'veg' ? 3 : 5)
     }
@@ -144,6 +160,7 @@ export function planWeek (fridge, myMeals = []) {
 
       const { name, isClassic } = nameFor(shape, attempt.chosen)
       if (isClassic) attempt.score += CLASSIC_BONUS
+      if (shape.id === 'pudding') attempt.score -= PUDDING_PENALTY
       if (recentShapes.includes(shape.id)) attempt.score -= REPEAT_SHAPE
       if (recentNames.includes(name)) attempt.score -= REPEAT_NAME
 

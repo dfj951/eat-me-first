@@ -105,7 +105,11 @@ export const SHAPES = [
       { kind: 'sauce', min: 0, max: 1, only: ['tintom', 'pesto'] },
       { kind: 'dairy', min: 0, max: 2, only: ['parmesan', 'cream', 'cremefraiche', 'mozzarella', 'cheddar', 'milk'] }
     ],
-    name: p => cap(join([...picked(p, 'protein', 1), ...picked(p, 'veg', 1)])) + ' pasta',
+    name: p => {
+      const front = join([...picked(p, 'protein', 1), ...picked(p, 'veg', 1)]) ||
+        picked(p, 'sauce', 1)[0] || picked(p, 'dairy', 1)[0] || 'plain'
+      return cap(front) + ' pasta'
+    },
     note: () => 'Sauce in the pan, pasta straight from the water into it, a splash of the water after.'
   },
   {
@@ -237,7 +241,7 @@ export const SHAPES = [
     mins: 20,
     slots: [
       { kind: 'fruit', min: 1, max: 3 },
-      { kind: 'dairy', min: 0, max: 1, only: ['yoghurt', 'cream', 'cremefraiche', 'butter'] },
+      { kind: 'dairy', min: 0, max: 1, only: ['yoghurt', 'cream', 'cremefraiche'] },
       { kind: 'base', min: 0, max: 1, only: ['bread'] }
     ],
     name: p => cap(join(picked(p, 'fruit', 2))) +
