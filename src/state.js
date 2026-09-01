@@ -13,7 +13,7 @@ import { FOODS, freezeLife, thawLife } from './data/foods.js'
 import { inDays } from './lib/dates.js'
 import { loadFridge, saveFridge, loadMeals, saveMeals, clearFridge,
   loadRecent, saveRecent, loadDislikes, saveDislikes,
-  loadHistory, saveHistory } from './lib/store.js'
+  loadHistory, saveHistory, loadBarcodes, saveBarcodes } from './lib/store.js'
 
 export const fridge = loadFridge()
 export const myMeals = loadMeals()
@@ -32,6 +32,12 @@ export const disliked = loadDislikes()
    happened the quantities drift out of date within days — this is the
    half of the loop that keeps the fridge honest. */
 export const history = loadHistory()
+
+/* Barcodes you've scanned, and what you said they were.
+   There is no product database here and no service to ask — the app
+   simply remembers. Scan a yoghurt once and tell it what it is; every
+   time after that it knows. It learns your shop rather than everyone's. */
+export const barcodes = loadBarcodes()
 
 function remember (key) {
   const at = recent.indexOf(key)
@@ -58,6 +64,7 @@ function changed () {
   saveRecent(recent)
   saveDislikes(disliked)
   saveHistory(history)
+  saveBarcodes(barcodes)
   for (const fn of listeners) fn()
 }
 
@@ -192,6 +199,16 @@ export function importAll (data) {
   nextId = Math.max(0, ...fridge.map(i => i.id ?? 0), ...myMeals.map(m => m.id ?? 0)) + 1
   changed()
   return true
+}
+
+/** What did this barcode turn out to be last time? */
+export const foodForBarcode = code => barcodes[code] ?? null
+
+/** Remember that this packet is this food. */
+export function rememberBarcode (code, key) {
+  if (!code || !key) return
+  barcodes[code] = key
+  changed()
 }
 
 /** Drop something from the recently-added chips. It stays searchable. */

@@ -5,6 +5,7 @@
 
 import { FOODS, canFreeze } from '../data/foods.js'
 import { searchFoods } from '../lib/search.js'
+import { startScanning, canScan } from '../lib/scanner.js'
 import { daysLeft, daysText, urgency, shortDate } from '../lib/dates.js'
 import * as state from '../state.js'
 import { escapeHtml as esc } from './html.js'
@@ -44,6 +45,10 @@ const openEdit = id => {
   renderFridge()
 }
 const closePanel = () => { pending = null; renderFridge() }
+
+/* A barcode we've just read but don't yet know the food for. Whatever
+   gets added next is what this packet is, and we remember it. */
+let awaitingCode = null
 
 export function mountFridge () {
   const search = document.getElementById('find')
@@ -145,12 +150,60 @@ export function mountFridge () {
     if (add) openAdd(FOODS[add.dataset.k])
   })
 
+  /* ── the scanner ─────────────────────────────────────────────────── */
+
+  const scanButton = document.getElementById('scan')
+  const viewfinder = document.getElementById('viewfinder')
+  const video = document.getElementById('scanVideo')
+  const scanNote = document.getElementById('scanNote')
+  let stopScanning = null
+
+  // no camera, or an insecure connection: don't offer it at all
+  scanButton.hidden = !canScan()
+
+  const closeScanner = () => {
+    stopScanning?.()
+    stopScanning = null
+    viewfinder.hidden = true
+    scanButton.hidden = !canScan()
+  }
+
+  scanButton.addEventListener('click', async () => {
+    scanButton.hidden = true
+    viewfinder.hidden = false
+    scanNote.className = 'scan-note'
+    scanNote.textContent = 'Point the camera at the barcode.'
+
+    stopScanning = await startScanning(video, code => {
+      closeScanner()
+      const known = state.foodForBarcode(code)
+
+      if (known && FOODS[known]) {
+        // seen this packet before, so straight to the usual panel
+        awaitingCode = null
+        openAdd(FOODS[known])
+      } else {
+        // a new packet: whatever you add next is what this is
+        awaitingCode = code
+        const find = document.getElementById('find')
+        find.focus()
+        note(`New barcode. Search for what it is and I’ll remember it.`)
+      }
+    }, message => {
+      scanNote.className = 'scan-note bad'
+      scanNote.textContent = message
+    })
+  })
+
+  document.getElementById('scanStop').addEventListener('click', closeScanner)
+
   document.getElementById('empty')
     .addEventListener('click', () => state.emptyFridge())
 
   /* There is no server and no sync, so this file is the only copy of
      your fridge that isn't inside one browser. */
-  const note = document.getElementById('toolsNote')
+  const noteEl = document.getElementById('toolsNote')
+  const note = text => { noteEl.textContent = text }
 
   document.getElementById('backup').addEventListener('click', () => {
     const data = JSON.stringify(state.exportAll(), null, 2)
@@ -160,7 +213,7 @@ export function mountFridge () {
     link.download = `eat-me-first-${new Date().toISOString().slice(0, 10)}.json`
     link.click()
     URL.revokeObjectURL(url)
-    note.textContent = ''
+    note('')
   })
 
   const fileInput = document.getElementById('restoreFile')
@@ -171,9 +224,9 @@ export function mountFridge () {
     if (!file) return
     try {
       const ok = state.importAll(JSON.parse(await file.text()))
-      note.textContent = ok ? '' : 'That file isn’t an Eat Me First backup.'
+      note(ok ? '' : 'That file isn’t an Eat Me First backup.')
     } catch {
-      note.textContent = 'Couldn’t read that file.'
+      note('Couldn’t read that file.')
     }
     fileInput.value = ''
   })
@@ -300,9 +353,18 @@ function renderPanel () {
       uses: pending.openEnded ? undefined : Number(val('panelUses'))
     }
 
-    if (pending.mode === 'add') state.addFood(pending.food.key, opts)
-    else if (pending.mode === 'new') state.addUnknown(val('panelName'), { ...opts, role })
-    else state.updateItem(pending.id, { ...opts, label: val('panelName'), role })
+    if (pending.mode === 'add') {
+      state.addFood(pending.food.key, opts)
+      if (awaitingCode) { state.rememberBarcode(awaitingCode, pending.food.key); awaitingCode = null }
+    } else if (pending.mode === 'new') {
+      state.addUnknown(val('panelName'), { ...opts, role })
+      if (awaitingCode) {
+        state.rememberBarcode(awaitingCode, 'own:' + val('panelName').trim().toLowerCase())
+        awaitingCode = null
+      }
+    } else {
+      state.updateItem(pending.id, { ...opts, label: val('panelName'), role })
+    }
 
     closePanel()
   })

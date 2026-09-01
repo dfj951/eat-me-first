@@ -10,6 +10,14 @@ const BUILT = new Date().toISOString().slice(0, 16).replace('T', ' ')
 
 export default defineConfig({
   define: { __BUILT__: JSON.stringify(BUILT) },
+
+  // The barcode library can ship its WASM either as a separate file or
+  // baked into the JavaScript. Baked in is what we want: one less thing
+  // to fetch, and scanning keeps working with no signal.
+  resolve: {
+    conditions: ['zbar-inlined', 'module', 'browser', 'development|production']
+  },
+
   base: '/eat-me-first/',
   // Vite assumes a very modern browser by default and leaves syntax like
   // ??= untouched, which older iPhones reject outright — the page just goes
@@ -19,7 +27,11 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       // Precache everything we build, so the app opens with no signal.
-      workbox: { globPatterns: ['**/*.{js,css,html,svg,png,ico}'] },
+      // wasm included: the barcode scanner must work in a shop with no signal
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,wasm}'],
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024
+      },
       manifest: {
         name: 'Eat Me First',
         short_name: 'Eat Me First',

@@ -14,6 +14,7 @@ const MEALS_KEY = 'eat-me-first/meals'
 const RECENT_KEY = 'eat-me-first/recent'
 const DISLIKE_KEY = 'eat-me-first/disliked'
 const HISTORY_KEY = 'eat-me-first/history'
+const BARCODE_KEY = 'eat-me-first/barcodes'
 
 function read (key, fallback) {
   try {
@@ -67,6 +68,13 @@ export const loadHistory = () => {
 }
 
 export const saveHistory = entries => write(HISTORY_KEY, entries)
+
+export const loadBarcodes = () => {
+  const saved = read(BARCODE_KEY, {})
+  return saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {}
+}
+
+export const saveBarcodes = map => write(BARCODE_KEY, map)
 
 export function clearFridge () {
   try { localStorage.removeItem(FRIDGE_KEY) } catch { /* nothing to do */ }

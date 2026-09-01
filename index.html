@@ -46,6 +46,14 @@
           <div class="hits" id="hits" role="listbox"></div>
         </div>
 
+        <button class="btn-ghost" id="scan" type="button" hidden>Scan a barcode</button>
+
+        <div class="viewfinder" id="viewfinder" hidden>
+          <video id="scanVideo" muted playsinline></video>
+          <p class="scan-note" id="scanNote">Point the camera at the barcode.</p>
+          <button class="btn-ghost" id="scanStop" type="button">Stop</button>
+        </div>
+
         <div id="chipsBlock" hidden>
           <p class="eyebrow">Your usuals</p>
           <div class="chips" id="chips"></div>
