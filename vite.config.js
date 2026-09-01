@@ -1,10 +1,10 @@
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// `base` matters for GitHub Pages: the site is served from
-// /eat-me-first/ rather than the root, so asset URLs need the prefix.
+// Served from the root on Vercel. If this ever moves to GitHub Pages,
+// set base to '/eat-me-first/' so the asset URLs get the repo prefix.
 export default defineConfig({
-  base: '/eat-me-first/',
+  base: '/',
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',
