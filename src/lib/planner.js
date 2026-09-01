@@ -34,6 +34,7 @@ const MINE_BONUS = 34 // your own meals get first refusal
 const REPEAT_SHAPE = 26 // not the same shape twice in a row
 const REPEAT_NAME = 40
 const PUDDING_PENALTY = 200 // fruit is a last resort for an evening meal
+const MAX_PER_WEEK = 2      // nobody wants the same dinner four nights running
 
 /** Turn the fridge into a mutable shelf the planner can take things off. */
 function toStock (fridge) {
@@ -141,15 +142,28 @@ const flatten = chosen => Object.values(chosen).flat()
 export function planWeek (fridge, myMeals = []) {
   const stock = toStock(fridge)
   const days = []
-  const recentShapes = []   // don't repeat a shape two days running
-  const recentNames = []    // and don't repeat a dish inside three days
+  const recentShapes = []      // don't repeat a shape two days running
+  const recentNames = []       // and don't repeat a dish inside three days
+  const timesCooked = new Map() // hard cap on how often one dish appears
+  let yesterday = ''
+
+  /* Having four burgers means four burger dinners are possible, but
+     nobody plans that. A dish never appears two nights running, and
+     never more than twice in the week — a day with nothing left worth
+     cooking is more honest than the same meal on repeat. */
+  const tooSoon = name =>
+    name === yesterday || (timesCooked.get(name) ?? 0) >= MAX_PER_WEEK
 
   for (let day = 0; day < 7; day++) {
     let best = null
+    // If a day comes back empty only because everything was a repeat,
+    // say so rather than claiming the fridge is bare.
+    let blocked = null
 
     for (const meal of myMeals) {
       const attempt = buildFromMine(meal, stock, day)
       if (!attempt) continue
+      if (tooSoon(attempt.meal.name)) { blocked ??= attempt.meal.name; continue }
       if (recentNames.includes(attempt.meal.name)) attempt.score -= REPEAT_NAME
       if (!best || attempt.score > best.score) best = { ...attempt, shapeId: 'mine' }
     }
@@ -159,6 +173,7 @@ export function planWeek (fridge, myMeals = []) {
       if (!attempt) continue
 
       const { name, isClassic } = nameFor(shape, attempt.chosen)
+      if (tooSoon(name)) { blocked ??= name; continue }
       if (isClassic) attempt.score += CLASSIC_BONUS
       if (shape.id === 'pudding') attempt.score -= PUDDING_PENALTY
       if (recentShapes.includes(shape.id)) attempt.score -= REPEAT_SHAPE
@@ -184,6 +199,8 @@ export function planWeek (fridge, myMeals = []) {
       if (recentShapes.length > 2) recentShapes.shift()
       recentNames.push(best.meal.name)
       if (recentNames.length > 3) recentNames.shift()
+      timesCooked.set(best.meal.name, (timesCooked.get(best.meal.name) ?? 0) + 1)
+      yesterday = best.meal.name
 
       days.push({
         day,
@@ -197,7 +214,8 @@ export function planWeek (fridge, myMeals = []) {
         defrost: used.filter(i => i.frozen && needsDefrosting(i.key)).map(i => i.key)
       })
     } else {
-      days.push({ day, meal: null })
+      days.push({ day, meal: null, couldRepeat: blocked })
+      yesterday = ''   // a blank day clears the way for it again tomorrow
     }
   }
 

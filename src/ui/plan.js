@@ -102,11 +102,12 @@ export function renderPlan () {
       </div>`
 
     if (!entry.meal) {
+      const [head, body] = entry.couldRepeat
+        ? ['A night off', `There’s enough for ${esc(entry.couldRepeat.toLowerCase())} again,
+           but you’ve had it this week — leftovers, or something out.`]
+        : ['Nothing left to cook', 'What’s left won’t make a whole meal on its own.']
       return `<div class="day idle">${when}
-        <div class="what">
-          <h4>Nothing left to cook</h4>
-          <p>What’s left won’t make a whole meal on its own.</p>
-        </div></div>`
+        <div class="what"><h4>${head}</h4><p>${body}</p></div></div>`
     }
 
     return `<div class="day">${when}
