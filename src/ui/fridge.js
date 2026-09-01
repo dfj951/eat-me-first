@@ -50,6 +50,21 @@ const closePanel = () => { pending = null; renderFridge() }
    gets added next is what this packet is, and we remember it. */
 let awaitingCode = null
 
+/* The prompt lives right under the search box, because that is where the
+   answer has to be typed. It used to sit at the bottom of the panel next
+   to the backup buttons, where nobody would ever see it. */
+function showScanPrompt (on) {
+  const prompt = document.getElementById('scanPrompt')
+  const find = document.getElementById('find')
+  if (prompt) prompt.hidden = !on
+  if (find) {
+    find.placeholder = on
+      ? 'What was that? Yoghurt, bacon…'
+      : 'Chicken, spinach, half a lemon…'
+    if (on) find.focus()
+  }
+}
+
 export function mountFridge () {
   const search = document.getElementById('find')
   const hits = document.getElementById('hits')
@@ -185,9 +200,7 @@ export function mountFridge () {
       } else {
         // a new packet: whatever you add next is what this is
         awaitingCode = code
-        const find = document.getElementById('find')
-        find.focus()
-        note(`New barcode. Search for what it is and I’ll remember it.`)
+        showScanPrompt(true)
       }
     }, message => {
       scanNote.className = 'scan-note bad'
@@ -196,6 +209,11 @@ export function mountFridge () {
   })
 
   document.getElementById('scanStop').addEventListener('click', closeScanner)
+
+  document.getElementById('scanForget').addEventListener('click', () => {
+    awaitingCode = null
+    showScanPrompt(false)
+  })
 
   document.getElementById('empty')
     .addEventListener('click', () => state.emptyFridge())
@@ -361,12 +379,17 @@ function renderPanel () {
 
     if (pending.mode === 'add') {
       state.addFood(pending.food.key, opts)
-      if (awaitingCode) { state.rememberBarcode(awaitingCode, pending.food.key); awaitingCode = null }
+      if (awaitingCode) {
+        state.rememberBarcode(awaitingCode, pending.food.key)
+        awaitingCode = null
+        showScanPrompt(false)
+      }
     } else if (pending.mode === 'new') {
       state.addUnknown(val('panelName'), { ...opts, role })
       if (awaitingCode) {
         state.rememberBarcode(awaitingCode, 'own:' + val('panelName').trim().toLowerCase())
         awaitingCode = null
+        showScanPrompt(false)
       }
     } else {
       state.updateItem(pending.id, { ...opts, label: val('panelName'), role })

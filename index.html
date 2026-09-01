@@ -44,6 +44,12 @@
           <input class="control" id="find" placeholder="Chicken, spinach, half a lemon…"
                  autocomplete="off" role="combobox" aria-expanded="false" aria-controls="hits" />
           <div class="hits" id="hits" role="listbox"></div>
+
+          <div class="scan-prompt" id="scanPrompt" hidden>
+            <p><b>New barcode.</b> Type what it is in the box above — pick it from the
+               list and I’ll remember this packet next time.</p>
+            <button class="btn-ghost tiny" id="scanForget" type="button">Forget it</button>
+          </div>
         </div>
 
         <button class="btn-ghost" id="scan" type="button" hidden>Scan a barcode</button>
