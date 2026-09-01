@@ -26,6 +26,36 @@ function renderAll () {
 const stamp = document.getElementById('build')
 if (stamp) stamp.textContent = `Version ${__BUILT__}.`
 
+/*
+ * Keeping the app up to date.
+ *
+ * The service worker is what lets this run with no signal, but it will
+ * happily serve yesterday's app for a load or two before noticing there
+ * is a new one — and a phone that keeps the app suspended may not notice
+ * for days. So: check for a new version every time the app comes back to
+ * the front, and reload the moment one takes over.
+ */
+if ('serviceWorker' in navigator) {
+  let reloading = false
+
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloading) return // a controllerchange can fire twice; reload once
+    reloading = true
+    location.reload()
+  })
+
+  const checkForUpdate = () =>
+    navigator.serviceWorker.getRegistration()
+      .then(reg => reg?.update())
+      .catch(() => { /* offline, or no registration yet. Try again later. */ })
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) checkForUpdate()
+  })
+
+  checkForUpdate()
+}
+
 // Wire up the bits that only need doing once.
 mountFridge()
 mountMyMeals()
