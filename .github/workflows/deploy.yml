@@ -34,7 +34,11 @@ jobs:
       - run: npm ci
       - run: npm run build
 
+      # enablement: true lets this workflow switch Pages over to
+      # "GitHub Actions" itself, instead of needing the dropdown set by hand.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
