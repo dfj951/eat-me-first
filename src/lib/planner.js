@@ -43,6 +43,9 @@ function toStock (fridge) {
     key: item.key,
     expiresIn: daysLeft(item.date),
     frozen: !!item.frozen,
+    // food you named yourself: the role you gave it, and what you call it
+    role: item.role ?? null,
+    label: item.label ?? null,
     left: item.uses ?? FOODS[item.key]?.uses ?? 2,
     touched: false
   }))
@@ -64,7 +67,7 @@ function buildFromShape (shape, stock, day) {
   for (const slot of shape.slots) {
     const candidates = stock
       .filter(s => s.left > 0 && s.expiresIn >= day &&
-        !taken.has(s.id) && !usedFoods.has(s.key) && slotFits(slot, s.key))
+        !taken.has(s.id) && !usedFoods.has(s.key) && slotFits(slot, s))
       .sort((a, b) => rescueValue(b.expiresIn - day) - rescueValue(a.expiresIn - day))
 
     // One food per slot as well as per meal: a slot taking three

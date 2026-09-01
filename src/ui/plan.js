@@ -19,7 +19,7 @@ const EMPTY = `
        so the meal at the top of the week is always the one that rescues the most food.</p>
   </div>`
 
-const lower = keys => keys.map(labelOf).join(', ').toLowerCase()
+const lower = keys => keys.map(state.labelForKey).join(', ').toLowerCase()
 
 export function renderPlan () {
   const out = document.getElementById('out')
@@ -91,15 +91,18 @@ export function renderPlan () {
 
   /* ── things added by hand that no meal can use ───────────────────── */
 
+  // only the ones still waiting to be told what they are
   const unknown = state.fridge.filter(item =>
-    state.isUnknown(item) && !wasted.some(w => w.id === item.id))
+    state.isUnknown(item) && !item.role && !wasted.some(w => w.id === item.id))
 
   const unknownNote = unknown.length
     ? `<div class="notice">
         <h5>Tracked, but not cooked with</h5>
         <p>${unknown.map(i => `<b>${esc(state.nameOf(i))}</b>`).join(', ')}
-           ${unknown.length === 1 ? 'was' : 'were'} added by hand, so no meal gets built
-           around ${unknown.length === 1 ? 'it' : 'them'} — the dates are watched, and that’s all.</p>
+           ${unknown.length === 1 ? 'needs' : 'need'} saying what
+           ${unknown.length === 1 ? 'it is' : 'they are'} before a meal can use
+           ${unknown.length === 1 ? 'it' : 'them'} — there’s a menu on
+           ${unknown.length === 1 ? 'its' : 'their'} row in the fridge.</p>
       </div>`
     : ''
 
@@ -144,7 +147,7 @@ export function renderPlan () {
         <p>${entry.saves.length ? `<span class="uses">Uses up ${esc(lower(entry.saves))}</span> &middot; ` : ''}${entry.meal.mins} min</p>
         <p class="made">${esc(lower(entry.uses))}</p>
         ${entry.defrost.length
-          ? `<p class="defrost">Take the ${esc(list(entry.defrost.map(labelOf)).toLowerCase())} out the night before</p>`
+          ? `<p class="defrost">Take the ${esc(list(entry.defrost.map(state.labelForKey)).toLowerCase())} out the night before</p>`
           : ''}
       </div></div>`)
   }

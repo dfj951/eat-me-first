@@ -288,6 +288,17 @@ button, input { font: inherit; color: inherit; }
 /* days left and how much is left, on one line under the name */
 .sub { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; margin-top: 1px; }
 
+.role {
+  font-size: 11px;
+  padding: 1px 4px;
+  border: 1px solid var(--hair-strong);
+  border-radius: 4px;
+  background: var(--surface-2);
+  color: var(--muted);
+  max-width: 150px;
+}
+.role:invalid, .role option[value=""] { color: var(--faint); }
+
 .qty { display: inline-flex; align-items: center; gap: 3px; }
 .qty button {
   width: 17px; height: 17px; padding: 0; line-height: 1;

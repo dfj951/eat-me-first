@@ -50,8 +50,18 @@ export const ROLES = {
 /** Leafy greens want throwing in at the very end, or not cooking at all. */
 export const LEAFY = new Set(['spinach', 'kale', 'lettuce', 'rocket'])
 
-/** Can this food fill this slot? */
-export function slotFits (slot, key) {
+/**
+ * Can this food fill this slot?
+ *
+ * Food you typed in yourself has no entry in the catalogue, so it carries
+ * the role you picked for it instead. A slot's `only` list names specific
+ * built-in foods, which your own food can never be on — so for those we
+ * go by the role alone. You said it was a vegetable; that's good enough.
+ */
+export function slotFits (slot, item) {
+  if (item.role) return slot.kind === item.role
+
+  const key = item.key
   if (slot.only) return slot.only.includes(key)
   if (slot.deny && slot.deny.includes(key)) return false
   const pool = ROLES[slot.kind]
@@ -65,7 +75,8 @@ const join = list =>
   list.length < 2 ? (list[0] ?? '') : list.slice(0, -1).join(', ') + ' and ' + list[list.length - 1]
 
 /** The cooking names of the first `n` things picked for a given role. */
-const picked = (p, kind, n = 9) => (p[kind] ?? []).slice(0, n).map(item => cookName(item.key))
+const picked = (p, kind, n = 9) =>
+  (p[kind] ?? []).slice(0, n).map(item => item.label ? item.label.toLowerCase() : cookName(item.key))
 
 /* ── the shapes a dinner comes in ──────────────────────────────────── */
 

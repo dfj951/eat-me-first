@@ -85,9 +85,26 @@ export function addUnknown (name) {
     key: 'own:' + clean.toLowerCase(),
     label: clean,
     date: inDays(5),
-    uses: 1
+    uses: 1,
+    // Unset until you say what it is. Without a role no meal can place it.
+    role: null
   })
   changed()
+}
+
+/** What kind of thing a hand-typed food is, so meals can use it. */
+export function setRole (id, role) {
+  const item = fridge.find(i => i.id === id)
+  if (!item) return
+  item.role = role || null
+  changed()
+}
+
+/** The display name for a food key, including ones you named yourself. */
+export function labelForKey (key) {
+  if (FOODS[key]) return FOODS[key].label
+  const own = fridge.find(i => i.key === key)
+  return own?.label ?? key
 }
 
 /** How many meals' worth is left. Never below one. */

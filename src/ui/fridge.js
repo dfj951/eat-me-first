@@ -19,6 +19,20 @@ const STARTERS = ['milk', 'eggs', 'chicken', 'spinach', 'tomato', 'bread',
 
 const CHIP_COUNT = 12
 
+/* What a hand-typed food can be, in the words a person would use rather
+   than the ones the engine uses internally. */
+const ROLE_CHOICES = [
+  ['', 'What is it?'],
+  ['protein', 'Meat, fish or protein'],
+  ['veg', 'Vegetable'],
+  ['base', 'Pasta, rice, bread or potatoes'],
+  ['dairy', 'Cheese or dairy'],
+  ['sauce', 'Sauce, tin or paste'],
+  ['aroma', 'Herb or flavouring'],
+  ['fruit', 'Fruit'],
+  ['none', 'Just track the date']
+]
+
 let matches = []
 let highlighted = -1
 
@@ -159,6 +173,14 @@ export function renderFridge () {
             <small>${item.frozen
               ? `frozen &middot; good to ${shortDate(item.date)}`
               : esc(daysText(days))}</small>
+            ${state.isUnknown(item) ? `
+              <select class="role" data-role="${item.id}"
+                      aria-label="What kind of food is ${esc(name)}?">
+                ${ROLE_CHOICES.map(([value, text]) => `
+                  <option value="${value}" ${
+                    (item.role ?? (item.roleSet ? 'none' : '')) === value ? 'selected' : ''
+                  }>${esc(text)}</option>`).join('')}
+              </select>` : ''}
             <span class="qty" title="Roughly how many meals this will stretch to">
               <button type="button" data-less="${item.id}" aria-label="Less ${esc(name)}"
                       ${uses <= 1 ? 'disabled' : ''}>&minus;</button>
@@ -177,6 +199,10 @@ export function renderFridge () {
                 aria-label="Remove ${esc(name)}">&times;</button>
       </div>`
   }).join('')}</div>`
+
+  host.querySelectorAll('[data-role]').forEach(select =>
+    select.addEventListener('change', () =>
+      state.setRole(Number(select.dataset.role), select.value === 'none' ? null : select.value)))
 
   host.querySelectorAll('[data-date]').forEach(input =>
     input.addEventListener('change', () => state.setDate(Number(input.dataset.date), input.value)))
