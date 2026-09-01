@@ -108,9 +108,10 @@ export function renderPlan () {
 
   /* ── the rest of the week ────────────────────────────────────────── */
 
-  /* A blank day with cooking still to come is a gap in the middle of the
-     week, not the end of the food: something is being saved for later.
-     That's a night to get something in. */
+  /* The week runs until the food does. The first day with nothing to
+     cook ends the list — no gaps in the middle, because there is still
+     food to get through and a takeaway suggested then would be the app
+     second-guessing you. */
   const lastCooking = days.reduce((last, d, i) => (d.meal ? i : last), -1)
 
   const dayLabel = date => `
@@ -122,21 +123,10 @@ export function renderPlan () {
   const rows = []
 
   for (const entry of days.slice(1)) {
-    // The empty run at the end of the week is summarised below rather
-    // than repeated as four identical rows.
-    if (!entry.meal && entry.day > lastCooking) break
+    // Everything after the food runs out is summarised in one row below.
+    if (!entry.meal) break
 
     const when = dayLabel(new Date(now.getTime() + entry.day * 86400000))
-
-    if (!entry.meal) {
-      rows.push(`<div class="day idle">${when}
-        <div class="what">
-          <h4>Takeaway</h4>
-          <p>Nothing here makes a meal today, and what’s left is wanted later
-             in the week. A night to order in.</p>
-        </div></div>`)
-      continue
-    }
 
     rows.push(`<div class="day">${when}
       <div class="what">
@@ -161,8 +151,8 @@ export function renderPlan () {
         <small>onwards</small>
       </div>
       <div class="what">
-        <h4>Time for a shop</h4>
-        <p>The fridge runs out here. A shop, or something ordered in.</p>
+        <h4>Time for a shop — or a takeaway</h4>
+        <p>The food runs out here. Nothing left to build a meal from.</p>
       </div></div>`)
   }
 

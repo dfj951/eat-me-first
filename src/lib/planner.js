@@ -31,10 +31,11 @@ export function rescueValue (days) {
 
 const CLASSIC_BONUS = 28 // a dish people can name beats a random assembly
 const MINE_BONUS = 34 // your own meals get first refusal
-const REPEAT_SHAPE = 26 // not the same shape twice in a row
-const REPEAT_NAME = 40
+const REPEAT_SHAPE = 26  // not the same shape twice in a row
+const REPEAT_NAME = 40   // and not the same dish inside three days
+const REPEAT_NIGHT = 70  // especially not two nights running
+const REPEAT_AGAIN = 30  // each time it has already appeared this week
 const PUDDING_PENALTY = 200 // fruit is a last resort for an evening meal
-const MAX_PER_WEEK = 2      // nobody wants the same dinner four nights running
 
 /** Turn the fridge into a mutable shelf the planner can take things off. */
 function toStock (fridge) {
@@ -147,26 +148,27 @@ export function planWeek (fridge, myMeals = [], disliked = []) {
   const unwanted = new Set(disliked)
   const stock = toStock(fridge)
   const days = []
-  const recentShapes = []      // don't repeat a shape two days running
-  const recentNames = []       // and don't repeat a dish inside three days
-  const timesCooked = new Map() // hard cap on how often one dish appears
-  let yesterday = ''
+  const recentShapes = []       // don't repeat a shape two days running
+  const recentNames = []        // and don't repeat a dish inside three days
+  const timesCooked = new Map() // how often each dish has come up
 
-  /* Having four burgers means four burger dinners are possible, but
-     nobody plans that. A dish never appears two nights running, and
-     never more than twice in the week — a day with nothing left worth
-     cooking is more honest than the same meal on repeat. */
-  const tooSoon = name =>
-    name === yesterday || (timesCooked.get(name) ?? 0) >= MAX_PER_WEEK
+  /* Variety is a preference, not a rule. Repeating a dinner is docked
+     heavily, so it only happens when the fridge offers nothing else —
+     and a gap in the middle of the week is worse than eating the same
+     thing twice, because there is still food to get through. */
+  let yesterday = ''
+  const staleness = name =>
+    (name === yesterday ? REPEAT_NIGHT : 0) +
+    (recentNames.includes(name) ? REPEAT_NAME : 0) +
+    REPEAT_AGAIN * (timesCooked.get(name) ?? 0)
 
   for (let day = 0; day < 7; day++) {
     let best = null
 
     for (const meal of myMeals) {
       const attempt = buildFromMine(meal, stock, day)
-      if (!attempt || tooSoon(attempt.meal.name)) continue
-      if (unwanted.has(attempt.meal.name)) continue
-      if (recentNames.includes(attempt.meal.name)) attempt.score -= REPEAT_NAME
+      if (!attempt || unwanted.has(attempt.meal.name)) continue
+      attempt.score -= staleness(attempt.meal.name)
       if (!best || attempt.score > best.score) best = { ...attempt, shapeId: 'mine' }
     }
 
@@ -175,11 +177,11 @@ export function planWeek (fridge, myMeals = [], disliked = []) {
       if (!attempt) continue
 
       const { name, isClassic } = nameFor(shape, attempt.chosen)
-      if (tooSoon(name) || unwanted.has(name)) continue
+      if (unwanted.has(name)) continue
       if (isClassic) attempt.score += CLASSIC_BONUS
       if (shape.id === 'pudding') attempt.score -= PUDDING_PENALTY
       if (recentShapes.includes(shape.id)) attempt.score -= REPEAT_SHAPE
-      if (recentNames.includes(name)) attempt.score -= REPEAT_NAME
+      attempt.score -= staleness(name)
 
       if (!best || attempt.score > best.score) {
         best = {
