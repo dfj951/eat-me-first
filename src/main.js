@@ -22,6 +22,10 @@ function renderAll () {
   renderPlan()
 }
 
+// Which build this is, so a cached copy on a phone is obvious.
+const stamp = document.getElementById('build')
+if (stamp) stamp.textContent = `Version ${__BUILT__}.`
+
 // Wire up the bits that only need doing once.
 mountFridge()
 mountMyMeals()

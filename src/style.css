@@ -589,3 +589,4 @@ button, input { font: inherit; color: inherit; }
   line-height: 1.6;
 }
 .foot b { color: var(--muted); }
+#build { display: block; margin-top: 6px; opacity: .7; }
