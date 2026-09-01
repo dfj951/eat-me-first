@@ -57,13 +57,20 @@ function changed () {
 /* ── the fridge ────────────────────────────────────────────────────── */
 
 /** Add a known food, dated by how long it usually keeps. */
-export function addFood (key, date) {
+/* Some things keep so long the date is noise — a bag of oven chips you
+   know you'll finish this week. They sit far enough in the future that
+   nothing ever calls them at risk, and the row says "no date" rather
+   than an absurd countdown. */
+const NO_DATE = () => inDays(3650)
+
+export function addFood (key, date, noDate = false) {
   const food = FOODS[key]
   if (!food) return
   fridge.push({
     id: nextId++,
     key,
-    date: date || inDays(Math.min(food.days, 14)),
+    noDate,
+    date: noDate ? NO_DATE() : (date || inDays(Math.min(food.days, 14))),
     // How many meals this will stretch to. Starts at the typical amount
     // for a normal shop; you can say otherwise.
     uses: food.uses
@@ -77,14 +84,15 @@ export function addFood (key, date) {
  * it, but the dates are still watched — and the plan says so plainly
  * rather than quietly ignoring it.
  */
-export function addUnknown (name, date, role = null) {
+export function addUnknown (name, date, role = null, noDate = false) {
   const clean = String(name).trim()
   if (!clean) return
   fridge.push({
     id: nextId++,
     key: 'own:' + clean.toLowerCase(),
     label: clean,
-    date: date || inDays(5),
+    noDate,
+    date: noDate ? NO_DATE() : (date || inDays(5)),
     uses: 1,
     // Unset until you say what it is. Without a role no meal can place it.
     role
@@ -100,7 +108,11 @@ export function updateItem (id, changes) {
     item.label = String(changes.label).trim()
     item.key = 'own:' + item.label.toLowerCase()
   }
-  if (changes.date) item.date = changes.date
+  if ('noDate' in changes) {
+    item.noDate = changes.noDate
+    if (changes.noDate) item.date = NO_DATE()
+  }
+  if (changes.date && !item.noDate) item.date = changes.date
   if (changes.uses) item.uses = Math.max(1, Math.min(20, changes.uses))
   if ('role' in changes) item.role = changes.role || null
   changed()

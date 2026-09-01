@@ -181,10 +181,12 @@ function renderPanel () {
            </div>`
         : `<p class="panel-name">${esc(name)}</p>`}
 
-      <div class="field">
-        <label for="panelDate">When does it go off?</label>
-        <input class="control" id="panelDate" type="date" value="${date}">
-      </div>
+      ${item?.noDate
+        ? '<p class="hint">No date on this one — it just sits in the fridge until you use it.</p>'
+        : `<div class="field">
+             <label for="panelDate">When does it go off?</label>
+             <input class="control" id="panelDate" type="date" value="${date}">
+           </div>`}
 
       ${item
         ? `<div class="field">
@@ -201,10 +203,33 @@ function renderPanel () {
         <button class="btn" id="panelSave" type="button">${pending.mode === 'edit' ? 'Save' : 'Add to fridge'}</button>
         <button class="btn-ghost" id="panelCancel" type="button">Cancel</button>
       </div>
+
+      <button class="linkish" id="panelNoDate" type="button">${
+        item?.noDate ? 'Actually, give it a date' : 'Add without a date — it keeps'
+      }</button>
     </div>`
 
   const val = id => document.getElementById(id)?.value
   document.getElementById('panelCancel').addEventListener('click', closePanel)
+
+  document.getElementById('panelNoDate').addEventListener('click', () => {
+    const role = val('panelRole') === 'none' ? null : val('panelRole') || null
+
+    if (pending.mode === 'add') state.addFood(pending.food.key, null, true)
+    else if (pending.mode === 'new') state.addUnknown(val('panelName'), null, role, true)
+    else {
+      // in edit mode this toggles: off puts the suggested date back
+      const turningOff = item.noDate
+      state.updateItem(pending.id, {
+        label: val('panelName'),
+        uses: Number(val('panelUses')),
+        role,
+        noDate: !turningOff,
+        ...(turningOff ? { date: state.suggestedDate(item.key) } : {})
+      })
+    }
+    closePanel()
+  })
   document.getElementById('panelSave').addEventListener('click', () => {
     const date = val('panelDate')
     const role = val('panelRole') === 'none' ? null : val('panelRole') || null
@@ -257,7 +282,7 @@ export function renderFridge () {
           <div class="sub">
             <small>${item.frozen
               ? `frozen &middot; good to ${shortDate(item.date)}`
-              : esc(daysText(days))}</small>
+              : item.noDate ? 'no date' : esc(daysText(days))}</small>
             ${state.isUnknown(item) ? `
               <select class="role" data-role="${item.id}"
                       aria-label="What kind of food is ${esc(name)}?">
