@@ -227,7 +227,7 @@ export const ALIASES = {
  */
 export const COOK_NAMES = {
   chicken: 'chicken', chickenthigh: 'chicken thigh', cookedchicken: 'cooked chicken',
-  mince: 'beef', porkmince: 'pork', lambchops: 'lamb', porkchops: 'pork chop',
+  mince: 'beef', porkmince: 'pork', lambchops: 'lamb chops', porkchops: 'pork chop',
   sausages: 'sausage', burgers: 'burger', prawns: 'prawn', whitefish: 'fish',
   fishfingers: 'fish finger', eggs: 'egg', carrot: 'carrot', potato: 'potato',
   tomato: 'tomato', pepper: 'pepper', mushroom: 'mushroom', leek: 'leek',

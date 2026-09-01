@@ -75,11 +75,20 @@ export const SHAPES = [
     mins: 25,
     slots: [
       { kind: 'protein', min: 1, max: 1, only: ['steak', 'lambchops', 'porkchops', 'gammon', 'sausages', 'burgers', 'salmon', 'whitefish', 'fishfingers', 'chickenthigh', 'turkey'] },
-      { kind: 'base', min: 1, max: 1, only: ['ovenchips', 'potato', 'sweetpotato'] },
+      { kind: 'base', min: 0, max: 1, only: ['ovenchips', 'potato', 'sweetpotato'] },
       { kind: 'veg', min: 0, max: 2, deny: ['lettuce', 'cucumber', 'rocket', 'avocado', 'spinach', 'kale'] },
       { kind: 'protein', min: 0, max: 2, only: ['eggs', 'bacon', 'ham'] }
     ],
-    name: p => cap(join([picked(p, 'protein', 1)[0], picked(p, 'base', 1)[0] ?? 'chips'].filter(Boolean))),
+    // "Steak and chips" when there are chips, "Lamb chops with carrots"
+    // when there aren't, and just "Steak" when it's only the steak.
+    name: p => {
+      const protein = picked(p, 'protein', 1)[0]
+      const side = picked(p, 'base', 1)[0]
+      const veg = picked(p, 'veg', 1)[0]
+      if (side) return cap(`${protein} and ${side}`)
+      if (veg) return cap(`${protein} with ${veg}`)
+      return cap(protein)
+    },
     note: p => `Hot pan, don't crowd it, and rest the ${picked(p, 'protein', 1)[0]} as long as you cooked it.`
   },
   {
@@ -139,7 +148,7 @@ export const SHAPES = [
     id: 'soup',
     mins: 35,
     slots: [
-      { kind: 'veg', min: 2, max: 4, only: ['carrot', 'onion', 'leek', 'potato', 'celery', 'squash', 'cauliflower', 'broccoli', 'tomato', 'parsnip', 'cabbage', 'peas', 'spinach', 'sweetpotato'] },
+      { kind: 'veg', min: 1, max: 4, only: ['carrot', 'onion', 'leek', 'potato', 'celery', 'squash', 'cauliflower', 'broccoli', 'tomato', 'parsnip', 'cabbage', 'peas', 'spinach', 'sweetpotato'] },
       { kind: 'protein', min: 0, max: 1, only: ['beans', 'lentils', 'chickpeas', 'bacon', 'chorizo', 'chicken'] },
       { kind: 'sauce', min: 0, max: 1, only: ['tintom', 'coconutmilk'] },
       { kind: 'dairy', min: 0, max: 1, only: ['cream', 'cremefraiche', 'cheddar'] }
@@ -151,7 +160,7 @@ export const SHAPES = [
     id: 'salad',
     mins: 15,
     slots: [
-      { kind: 'veg', min: 2, max: 4, only: ['lettuce', 'cucumber', 'tomato', 'rocket', 'avocado', 'pepper', 'springonion', 'carrot', 'beetroot', 'sugarsnap', 'fennel'] },
+      { kind: 'veg', min: 1, max: 4, only: ['lettuce', 'cucumber', 'tomato', 'rocket', 'avocado', 'pepper', 'springonion', 'carrot', 'beetroot', 'sugarsnap', 'fennel'] },
       { kind: 'protein', min: 1, max: 1, only: ['feta', 'halloumi', 'chicken', 'cookedchicken', 'tuna', 'eggs', 'chickpeas', 'prawns', 'smokedsalmon', 'lentils', 'ham', 'beans'] },
       { kind: 'base', min: 0, max: 1, only: ['couscous', 'bread', 'potato', 'pasta'] },
       { kind: 'aroma', min: 0, max: 1, only: ['lemon', 'mint', 'basil', 'parsley'] }
@@ -176,12 +185,12 @@ export const SHAPES = [
     mins: 18,
     slots: [
       { kind: 'protein', min: 1, max: 1, only: ['eggs'] },
-      { kind: 'veg', min: 1, max: 3, only: ['mushroom', 'pepper', 'onion', 'spinach', 'tomato', 'courgette', 'potato', 'peas', 'springonion', 'asparagus', 'leek'] },
+      { kind: 'veg', min: 0, max: 3, only: ['mushroom', 'pepper', 'onion', 'spinach', 'tomato', 'courgette', 'potato', 'peas', 'springonion', 'asparagus', 'leek'] },
       { kind: 'sauce', min: 0, max: 1, only: ['tintom'] },
       { kind: 'dairy', min: 0, max: 1, only: ['cheddar', 'feta', 'parmesan', 'mozzarella'] },
       { kind: 'protein', min: 0, max: 1, only: ['ham', 'bacon', 'chorizo', 'smokedsalmon', 'cookedchicken'] }
     ],
-    name: p => cap(join(picked(p, 'veg', 2))) + ' omelette',
+    name: p => cap(join(picked(p, 'veg', 2)) || picked(p, 'dairy', 1)[0] || 'plain') + ' omelette',
     note: () => 'Low heat, and off the pan while the middle still looks slightly unfinished.'
   },
   {
@@ -213,7 +222,7 @@ export const SHAPES = [
     slots: [
       { kind: 'base', min: 1, max: 1, only: ['rice', 'couscous', 'noodles', 'potato'] },
       { kind: 'protein', min: 1, max: 1, only: ['chicken', 'chickenthigh', 'beans', 'chickpeas', 'halloumi', 'tofu', 'salmon', 'prawns', 'eggs', 'lentils', 'cookedchicken', 'turkey'] },
-      { kind: 'veg', min: 2, max: 3, only: ['pepper', 'broccoli', 'carrot', 'sweetpotato', 'avocado', 'cucumber', 'tomato', 'spinach', 'courgette', 'squash', 'peas', 'rocket', 'beetroot'] },
+      { kind: 'veg', min: 1, max: 3, only: ['pepper', 'broccoli', 'carrot', 'sweetpotato', 'avocado', 'cucumber', 'tomato', 'spinach', 'courgette', 'squash', 'peas', 'rocket', 'beetroot'] },
       { kind: 'dairy', min: 0, max: 1, only: ['feta', 'yoghurt', 'halloumi'] },
       { kind: 'aroma', min: 0, max: 2, only: ['lemon', 'lime', 'coriander', 'chilli', 'garlic'] }
     ],
