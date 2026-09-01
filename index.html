@@ -63,6 +63,20 @@
 
         <div id="listHost"></div>
 
+        <details id="listBox">
+          <summary>Shopping list <span id="listCount"></span></summary>
+          <div class="stack">
+            <p class="hint">A list you write yourself. Ticking something off puts it
+               straight in the fridge.</p>
+            <div class="row-add">
+              <input class="control" id="listInput" placeholder="Milk, bread, something else…">
+              <button class="btn-ghost" id="listAdd" type="button">Add</button>
+            </div>
+            <div id="listBody"></div>
+            <button class="btn-ghost" id="listClear" type="button">Clear the list</button>
+          </div>
+        </details>
+
         <details id="mealsBox">
           <summary>My meals</summary>
           <div class="stack">

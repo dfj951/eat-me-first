@@ -10,10 +10,11 @@
  */
 
 import { FOODS, freezeLife, thawLife } from './data/foods.js'
-import { inDays } from './lib/dates.js'
+import { inDays, daysLeft } from './lib/dates.js'
 import { loadFridge, saveFridge, loadMeals, saveMeals, clearFridge,
   loadRecent, saveRecent, loadDislikes, saveDislikes,
-  loadHistory, saveHistory, loadBarcodes, saveBarcodes } from './lib/store.js'
+  loadHistory, saveHistory, loadBarcodes, saveBarcodes,
+  loadShopping, saveShopping } from './lib/store.js'
 
 export const fridge = loadFridge()
 export const myMeals = loadMeals()
@@ -38,6 +39,11 @@ export const history = loadHistory()
    simply remembers. Scan a yoghurt once and tell it what it is; every
    time after that it knows. It learns your shop rather than everyone's. */
 export const barcodes = loadBarcodes()
+
+/* The shopping list. Deliberately separate from the meal plan: the plan
+   never tells you to go buying, but a list you write on purpose is a
+   different thing entirely. */
+export const shopping = loadShopping()
 
 function remember (key) {
   const at = recent.indexOf(key)
@@ -65,6 +71,7 @@ function changed () {
   saveDislikes(disliked)
   saveHistory(history)
   saveBarcodes(barcodes)
+  saveShopping(shopping)
   for (const fn of listeners) fn()
 }
 
@@ -199,6 +206,51 @@ export function importAll (data) {
   nextId = Math.max(0, ...fridge.map(i => i.id ?? 0), ...myMeals.map(m => m.id ?? 0)) + 1
   changed()
   return true
+}
+
+/* ── the shopping list ─────────────────────────────────────────────── */
+
+export function addToList (label, key = null) {
+  const clean = String(label).trim()
+  if (!clean) return
+  if (shopping.some(i => i.label.toLowerCase() === clean.toLowerCase())) return
+  shopping.push({ id: nextId++, label: clean, key })
+  changed()
+}
+
+export function removeFromList (id) {
+  const at = shopping.findIndex(i => i.id === id)
+  if (at > -1) shopping.splice(at, 1)
+  changed()
+}
+
+/** Bought it: straight into the fridge on the usual date, off the list. */
+export function gotIt (id) {
+  const entry = shopping.find(i => i.id === id)
+  if (!entry) return
+  if (entry.key && FOODS[entry.key]) addFood(entry.key)
+  else addUnknown(entry.label)
+  removeFromList(id)
+}
+
+export function clearList () {
+  shopping.length = 0
+  changed()
+}
+
+/**
+ * Things you buy that aren't in the fridge right now. Not a nag — it
+ * only ever appears inside the list you opened yourself.
+ */
+export function runningLow () {
+  const have = new Set(fridge.map(i => i.key))
+  const listed = new Set(shopping.map(i => i.key).filter(Boolean))
+  return recent.filter(key => FOODS[key] && !have.has(key) && !listed.has(key)).slice(0, 8)
+}
+
+/** How many things are about to die — for the badge on the app icon. */
+export function atRisk () {
+  return fridge.filter(i => !i.frozen && !i.noDate && daysLeft(i.date) <= 2).length
 }
 
 /** What did this barcode turn out to be last time? */

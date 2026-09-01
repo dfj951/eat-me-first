@@ -458,12 +458,17 @@ button, input { font: inherit; color: inherit; }
 
 /* ── my meals ───────────────────────────────────────────────────────── */
 
-#mealsBox summary {
+.row-add { display: flex; gap: 8px; }
+.row-add .control { flex: 1; }
+.list-actions { display: flex; align-items: center; gap: 4px; }
+
+#listBox summary, #mealsBox summary {
   cursor: pointer;
   font-size: 13px;
   color: var(--muted);
   font-weight: 600;
 }
+#listCount { color: var(--faint); font-weight: 400; }
 
 .mine {
   display: flex;

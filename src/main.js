@@ -13,13 +13,35 @@ import { mountFridge, renderFridge, renderChips } from './ui/fridge.js'
 import { mountMyMeals, renderMyMeals } from './ui/mymeals.js'
 import { renderPlan } from './ui/plan.js'
 import { renderDisliked } from './ui/disliked.js'
+import { mountShopping, renderShopping } from './ui/shopping.js'
+import * as state from './state.js'
 
 function renderAll () {
   renderChips()
   renderFridge()
+  renderShopping()
   renderMyMeals()
   renderDisliked()
   renderPlan()
+  showBadge()
+}
+
+/*
+ * The number on the app icon.
+ *
+ * A proper reminder at teatime would need a server pushing to the phone,
+ * which this app deliberately doesn't have. A badge is what's possible
+ * without one: the count of things about to go off, sitting on the icon.
+ * It only refreshes while the app is open, so treat it as a nudge rather
+ * than an alarm.
+ */
+function showBadge () {
+  if (!navigator.setAppBadge) return
+  const count = state.atRisk()
+  const done = count > 0
+    ? navigator.setAppBadge(count)
+    : navigator.clearAppBadge?.()
+  done?.catch(() => { /* not installed to the home screen; nothing to badge */ })
 }
 
 // Which build this is, so a cached copy on a phone is obvious.
@@ -58,6 +80,7 @@ if ('serviceWorker' in navigator) {
 
 // Wire up the bits that only need doing once.
 mountFridge()
+mountShopping()
 mountMyMeals()
 
 // Then redraw on every change, and once now to start.
