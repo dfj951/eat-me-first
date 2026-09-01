@@ -15,7 +15,7 @@ import { loadFridge, saveFridge, loadMeals, saveMeals, clearFridge,
   loadRecent, saveRecent, loadDislikes, saveDislikes,
   loadHistory, saveHistory, loadBarcodes, saveBarcodes,
   loadShopping, saveShopping, loadAvoided, saveAvoided,
-  loadMaxMins, saveMaxMins } from './lib/store.js'
+  loadMaxMins, saveMaxMins, loadHabits, saveHabits } from './lib/store.js'
 
 export const fridge = loadFridge()
 export const myMeals = loadMeals()
@@ -54,6 +54,12 @@ export const avoided = loadAvoided()
 /* How long you've got tonight, or null for no limit. */
 export let maxMins = loadMaxMins()
 
+/* How long you actually give each food, as against the typical shelf
+   life. If you always set milk to five days rather than seven, the app
+   should stop offering seven — you know your fridge better than a
+   general figure does. */
+export const dateHabits = loadHabits()
+
 function remember (key) {
   const at = recent.indexOf(key)
   if (at > -1) recent.splice(at, 1)
@@ -83,6 +89,7 @@ function changed () {
   saveShopping(shopping)
   saveAvoided(avoided)
   saveMaxMins(maxMins)
+  saveHabits(dateHabits)
   for (const fn of listeners) fn()
 }
 
@@ -414,6 +421,23 @@ export function nameOf (item) {
 /** Was this added by hand, rather than picked from the food list? */
 export const isUnknown = item => String(item.key).startsWith('own:')
 
-/** The date we'd suggest for a food: today plus however long it usually keeps. */
-export const suggestedDate = key =>
-  inDays(FOODS[key] ? Math.min(FOODS[key].days, 14) : 5)
+/**
+ * Note how many days you gave something, so the next one starts closer
+ * to the truth. Averaged rather than last-wins, so one odd packet
+ * doesn't throw it off.
+ */
+export function noteDateChoice (key, days) {
+  if (!key || !Number.isFinite(days) || days < 0 || days > 365) return
+  const seen = dateHabits[key] ?? { n: 0, total: 0 }
+  dateHabits[key] = { n: seen.n + 1, total: seen.total + days }
+  // saved by whoever calls this next; it always follows an add
+}
+
+/** The date to offer for a food: what you usually give it, else the usual. */
+export function suggestedDate (key) {
+  const learned = dateHabits[key]
+  if (learned && learned.n >= 2) {
+    return inDays(Math.max(0, Math.round(learned.total / learned.n)))
+  }
+  return inDays(FOODS[key] ? Math.min(FOODS[key].days, 14) : 5)
+}

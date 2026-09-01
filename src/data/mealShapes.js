@@ -24,21 +24,24 @@ export const ROLES = {
     'sausages', 'bacon', 'ham', 'chorizo', 'steak', 'lambchops', 'porkchops',
     'gammon', 'turkey', 'burgers', 'salmon', 'whitefish', 'prawns',
     'smokedsalmon', 'fishfingers', 'eggs', 'tofu', 'halloumi', 'chickpeas',
-    'beans', 'lentils', 'tuna'],
+    'beans', 'lentils', 'tuna', 'salami', 'mackerel', 'sardines'],
 
   veg: ['onion', 'carrot', 'potato', 'sweetpotato', 'tomato', 'pepper',
     'courgette', 'aubergine', 'mushroom', 'broccoli', 'cauliflower', 'spinach',
     'kale', 'lettuce', 'cucumber', 'celery', 'leek', 'cabbage', 'peas',
     'greenbeans', 'squash', 'avocado', 'asparagus', 'rocket', 'parsnip',
-    'fennel', 'sprouts', 'sugarsnap', 'beetroot', 'sweetcorn'],
+    'fennel', 'sprouts', 'sugarsnap', 'beetroot', 'sweetcorn',
+    'edamame', 'pakchoi', 'watercress', 'springgreens'],
 
   base: ['pasta', 'rice', 'noodles', 'bread', 'tortilla', 'couscous',
-    'gnocchi', 'potato', 'ovenchips', 'sweetpotato'],
+    'gnocchi', 'potato', 'ovenchips', 'sweetpotato',
+    'tortellini', 'naan', 'crackers', 'oats'],
 
   dairy: ['cheddar', 'parmesan', 'mozzarella', 'feta', 'cream', 'cremefraiche',
-    'yoghurt', 'butter', 'creamcheese', 'milk'],
+    'yoghurt', 'butter', 'creamcheese', 'milk', 'cottagecheese', 'ricotta'],
 
-  sauce: ['tintom', 'coconutmilk', 'currypaste', 'pesto'],
+  sauce: ['tintom', 'coconutmilk', 'currypaste', 'pesto',
+    'mayo', 'harissa', 'tahini', 'miso'],
 
   aroma: ['garlic', 'ginger', 'chilli', 'springonion', 'basil', 'coriander',
     'parsley', 'mint', 'lemon', 'lime'],
@@ -224,6 +227,45 @@ export const SHAPES = [
     note: () => 'Butter the outside of the bread, not the inside.'
   },
   {
+    // Nothing cooked at all. The genuinely quick option, and the one the
+    // shapes were missing when the time filter found nothing under 15.
+    id: 'sandwich',
+    mins: 8,
+    slots: [
+      { kind: 'base', min: 1, max: 1, only: ['bread', 'naan', 'crackers'] },
+      { kind: 'protein', min: 1, max: 1, only: ['ham', 'cookedchicken', 'chicken', 'tuna', 'eggs', 'salami', 'cheddar', 'hummus', 'smokedsalmon', 'mackerel', 'sardines', 'creamcheese', 'cottagecheese'] },
+      { kind: 'veg', min: 0, max: 2, only: ['lettuce', 'tomato', 'cucumber', 'rocket', 'watercress', 'avocado', 'springonion', 'pepper'] },
+      { kind: 'sauce', min: 0, max: 1, only: ['mayo', 'harissa', 'pesto'] }
+    ],
+    name: p => cap(picked(p, 'protein', 1)[0] ?? 'a') + ' sandwich',
+    note: () => 'Assembly, not cooking. Season the tomato if there is one.'
+  },
+  {
+    id: 'wrap',
+    mins: 10,
+    slots: [
+      { kind: 'base', min: 1, max: 1, only: ['tortilla', 'naan'] },
+      { kind: 'protein', min: 1, max: 1, only: ['chicken', 'cookedchicken', 'halloumi', 'chickpeas', 'beans', 'tuna', 'eggs', 'hummus', 'salami', 'ham', 'tofu', 'mince'] },
+      { kind: 'veg', min: 1, max: 3, only: ['lettuce', 'tomato', 'cucumber', 'pepper', 'rocket', 'avocado', 'springonion', 'watercress', 'cabbage'] },
+      { kind: 'dairy', min: 0, max: 1, only: ['cheddar', 'feta', 'yoghurt'] },
+      { kind: 'sauce', min: 0, max: 1, only: ['harissa', 'mayo', 'tahini', 'pesto'] }
+    ],
+    name: p => cap(picked(p, 'protein', 1)[0] ?? 'veg') + ' wrap',
+    note: () => 'Warm the wrap for ten seconds and it stops splitting.'
+  },
+  {
+    id: 'quesadilla',
+    mins: 12,
+    slots: [
+      { kind: 'base', min: 1, max: 1, only: ['tortilla'] },
+      { kind: 'dairy', min: 1, max: 1, only: ['cheddar', 'mozzarella'] },
+      { kind: 'protein', min: 0, max: 1, only: ['chicken', 'cookedchicken', 'beans', 'chorizo', 'mince', 'salami', 'ham'] },
+      { kind: 'veg', min: 0, max: 2, only: ['pepper', 'onion', 'springonion', 'sweetcorn', 'mushroom', 'spinach'] }
+    ],
+    name: p => cap(picked(p, 'protein', 1)[0] ?? 'cheese') + ' quesadilla',
+    note: () => 'Dry pan, cheese to the edges, press it down and flip once.'
+  },
+  {
     id: 'toast',
     mins: 8,
     slots: [
@@ -295,6 +337,10 @@ export const CLASSICS = [
   { shape: 'omelette', keys: ['potato', 'onion'], name: 'Spanish omelette' },
   { shape: 'omelette', keys: ['tintom', 'pepper'], name: 'Shakshuka' },
   { shape: 'toastie', keys: ['cheddar', 'ham'], name: 'Cheese and ham toastie' },
+  { shape: 'sandwich', keys: ['cheddar', 'tomato'], name: 'Cheese and tomato sandwich' },
+  { shape: 'sandwich', keys: ['tuna', 'cucumber'], name: 'Tuna sandwich' },
+  { shape: 'wrap', keys: ['chicken', 'lettuce'], name: 'Chicken wrap' },
+  { shape: 'wrap', keys: ['halloumi', 'pepper'], name: 'Halloumi wrap' },
   { shape: 'toast', keys: ['avocado', 'eggs'], name: 'Avocado and egg on toast' },
   { shape: 'toast', keys: ['beans'], name: 'Beans on toast' },
   { shape: 'toast', keys: ['cheddar'], name: 'Cheese on toast' },

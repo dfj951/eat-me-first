@@ -136,7 +136,26 @@ const ROWS = [
 
   // odds and ends
   ['juice', 'Juice', 'other', 7, 4],
-  ['leftovers', 'Leftovers', 'other', 3, 1]
+  ['leftovers', 'Leftovers', 'other', 3, 1],
+
+  // added later, from gaps that turned up in use
+  ['tortellini', 'Fresh tortellini', 'carb', 14, 2],
+  ['naan', 'Naan', 'carb', 7, 2],
+  ['crackers', 'Crackers', 'carb', 90, 6],
+  ['oats', 'Porridge oats', 'cupboard', 400, 10],
+  ['mayo', 'Mayonnaise', 'cupboard', 90, 10],
+  ['harissa', 'Harissa', 'cupboard', 90, 6],
+  ['tahini', 'Tahini', 'cupboard', 180, 8],
+  ['miso', 'Miso paste', 'cupboard', 180, 8],
+  ['sardines', 'Tinned sardines', 'cupboard', 700, 2],
+  ['cottagecheese', 'Cottage cheese', 'dairy', 10, 3],
+  ['ricotta', 'Ricotta', 'dairy', 10, 2],
+  ['salami', 'Salami', 'meat', 21, 4],
+  ['mackerel', 'Smoked mackerel', 'fish', 5, 2],
+  ['edamame', 'Edamame', 'veg', 120, 3],
+  ['pakchoi', 'Pak choi', 'veg', 6, 2],
+  ['watercress', 'Watercress', 'veg', 4, 2],
+  ['springgreens', 'Spring greens', 'veg', 7, 2]
 ]
 
 /** Every food, keyed for instant lookup: FOODS.spinach.label === 'Spinach' */
@@ -218,7 +237,19 @@ export const ALIASES = {
   lime: ['limes'],
   apple: ['apples'],
   orange: ['oranges', 'satsuma', 'clementine'],
-  leftovers: ['last night', 'leftover']
+  leftovers: ['last night', 'leftover'],
+  tortellini: ['fresh pasta', 'ravioli', 'filled pasta'],
+  naan: ['flatbread', 'chapati'],
+  crackers: ['crackerbread', 'oatcakes', 'crispbread'],
+  oats: ['porridge', 'rolled oats'],
+  mayo: ['mayonnaise'],
+  sardines: ['tinned fish', 'sardine'],
+  cottagecheese: ['cottage'],
+  salami: ['pepperoni', 'chorizo slices', 'cured meat'],
+  mackerel: ['smoked fish'],
+  pakchoi: ['bok choy', 'pak choy'],
+  springgreens: ['greens', 'cabbage greens'],
+  watercress: ['cress']
 }
 
 /**
@@ -237,7 +268,9 @@ export const COOK_NAMES = {
   pear: 'pear', plum: 'plum', grapes: 'grape', tintom: 'tomato', beans: 'bean',
   chickpeas: 'chickpea', lentils: 'lentil', noodles: 'noodle', olives: 'olive',
   tuna: 'tuna',
-  ovenchips: 'chips', cremefraiche: 'crème fraîche', creamcheese: 'cream cheese'
+  ovenchips: 'chips', cremefraiche: 'crème fraîche', creamcheese: 'cream cheese',
+  tortellini: 'tortellini', crackers: 'cracker', oats: 'porridge',
+  sardines: 'sardine', cottagecheese: 'cottage cheese', springgreens: 'spring greens'
 }
 
 /* ── the freezer ──────────────────────────────────────────────────────
@@ -260,7 +293,9 @@ const FREEZE_OVERRIDE = {
   steak: 180, lambchops: 180, porkchops: 180, gammon: 180, turkey: 180,
   burgers: 180, fishfingers: 180,
   banana: 180, berries: 360, mango: 240, grapes: 180, pineapple: 240,
-  tomato: 180, mushroom: 90, leftovers: 90
+  tomato: 180, mushroom: 90, leftovers: 90,
+  tortellini: 90, naan: 90, crackers: 0, cottagecheese: 0, ricotta: 60,
+  salami: 90, mackerel: 60, watercress: 0, pakchoi: 0
 }
 
 /** How many days this food keeps frozen. 0 means don't. */

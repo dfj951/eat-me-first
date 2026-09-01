@@ -353,6 +353,12 @@ function renderPanel () {
       uses: pending.openEnded ? undefined : Number(val('panelUses'))
     }
 
+    // remember how long you gave it, so the next one starts nearer
+    if (!pending.noDate && opts.date) {
+      const key = pending.mode === 'add' ? pending.food.key : null
+      if (key) state.noteDateChoice(key, daysLeft(opts.date))
+    }
+
     if (pending.mode === 'add') {
       state.addFood(pending.food.key, opts)
       if (awaitingCode) { state.rememberBarcode(awaitingCode, pending.food.key); awaitingCode = null }
