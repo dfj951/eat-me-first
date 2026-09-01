@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description" content="Cook what dies first. Track what's in your fridge and get a week of meals built from it." />
+  <meta name="theme-color" content="#111820" />
+
+  <!-- Lets the app run full screen with its own icon when added to an iPhone home screen -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Eat Me First" />
+
+  <title>Eat Me First</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Karla:wght@400;500;600;700&family=Azeret+Mono:wght@400;500&display=swap" />
+</head>
+
+<body>
+  <header class="bar">
+    <div class="bar-in">
+      <h1>Eat Me <span>First</span></h1>
+      <p>Tell it what’s in your fridge and when it goes off. It works out what to
+         cook tonight — and every night this week — so nothing dies in the drawer.</p>
+      <span class="stamp">Works offline</span>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <!-- ── what you have ─────────────────────────────────────────── -->
+    <section class="panel" aria-label="Your fridge">
+      <div class="panel-h">
+        <h2>Your fridge</h2>
+        <span class="count" id="count"></span>
+      </div>
+
+      <div class="panel-b">
+        <div class="finder">
+          <label for="find">Add something</label>
+          <input class="control" id="find" placeholder="Chicken, spinach, half a lemon…"
+                 autocomplete="off" role="combobox" aria-expanded="false" aria-controls="hits" />
+          <div class="hits" id="hits" role="listbox"></div>
+        </div>
+
+        <div>
+          <p class="eyebrow">Usual suspects</p>
+          <div class="chips" id="chips"></div>
+        </div>
+
+        <div id="listHost"></div>
+
+        <details id="mealsBox">
+          <summary>My meals</summary>
+          <div class="stack">
+            <p class="hint">The things you actually cook. Save one and it gets first
+               refusal whenever the fridge can supply it.</p>
+
+            <div class="field">
+              <label for="mealName">What do you call it?</label>
+              <input class="control" id="mealName" placeholder="Mum’s chilli" />
+            </div>
+
+            <div class="field">
+              <label for="mealIngredients">What goes in it?</label>
+              <input class="control" id="mealIngredients"
+                     placeholder="mince, kidney beans, tinned tomatoes, rice" />
+            </div>
+
+            <p class="err" id="mealError"></p>
+            <button class="btn-ghost" id="mealAdd" type="button">Save this meal</button>
+            <div id="mealsHost"></div>
+          </div>
+        </details>
+
+        <button class="btn-ghost" id="empty" type="button">Empty the fridge</button>
+      </div>
+    </section>
+
+    <!-- ── what to cook ──────────────────────────────────────────── -->
+    <section class="panel" aria-live="polite" aria-label="What to cook">
+      <div id="out"></div>
+    </section>
+
+  </main>
+
+  <p class="foot">
+    <b>How it works.</b> There is no recipe list. Every ingredient is tagged with what it
+    can be — a protein, a base, a vegetable, something to finish with — and a dozen meal
+    shapes say how those slots fit together, so a stir fry is any protein, two or three of
+    the right vegetables and a base, assembled from whatever you actually have. Each shape
+    is scored against your fridge on the day it would be cooked: something going off
+    tomorrow is worth roughly twenty times something that keeps a week. Cooking a meal takes
+    its ingredients off the shelf before the next day is planned. Shelf lives are typical
+    ones for an unopened item in a cold fridge — trust the label and your nose over this.
+    Nothing you type leaves your browser.
+  </p>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

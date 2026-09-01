@@ -1,0 +1,120 @@
+/**
+ * THE STATE
+ *
+ * One place that owns the fridge and your saved meals. Nothing else
+ * writes to them directly — the UI calls these functions, the state
+ * saves itself, and then tells whoever is listening to redraw.
+ *
+ * It's a very small version of what every UI framework does for you.
+ * Worth understanding before reaching for one.
+ */
+
+import { FOODS, freezeLife, thawLife } from './data/foods.js'
+import { inDays } from './lib/dates.js'
+import { loadFridge, saveFridge, loadMeals, saveMeals, clearFridge } from './lib/store.js'
+
+export const fridge = loadFridge()
+export const myMeals = loadMeals()
+
+let nextId = Math.max(0, ...fridge.map(i => i.id ?? 0), ...myMeals.map(m => m.id ?? 0)) + 1
+
+/* ── listeners ─────────────────────────────────────────────────────── */
+
+const listeners = new Set()
+
+/** Call `fn` whenever anything changes. Returns an unsubscribe function. */
+export function onChange (fn) {
+  listeners.add(fn)
+  return () => listeners.delete(fn)
+}
+
+function changed () {
+  saveFridge(fridge)
+  saveMeals(myMeals)
+  for (const fn of listeners) fn()
+}
+
+/* ── the fridge ────────────────────────────────────────────────────── */
+
+/** Add a known food, dated by how long it usually keeps. */
+export function addFood (key) {
+  const food = FOODS[key]
+  if (!food) return
+  fridge.push({ id: nextId++, key, date: inDays(Math.min(food.days, 14)) })
+  changed()
+}
+
+/**
+ * Add something the app has never heard of. No meal will be built around
+ * it, but the dates are still watched — and the plan says so plainly
+ * rather than quietly ignoring it.
+ */
+export function addUnknown (name) {
+  const clean = String(name).trim()
+  if (!clean) return
+  fridge.push({
+    id: nextId++,
+    key: 'own:' + clean.toLowerCase(),
+    label: clean,
+    date: inDays(5)
+  })
+  changed()
+}
+
+export function removeItem (id) {
+  const at = fridge.findIndex(i => i.id === id)
+  if (at > -1) fridge.splice(at, 1)
+  changed()
+}
+
+export function setDate (id, date) {
+  const item = fridge.find(i => i.id === id)
+  if (item && date) item.date = date
+  changed()
+}
+
+/** Freezing stops the clock. */
+export function freeze (id) {
+  const item = fridge.find(i => i.id === id)
+  const life = item && freezeLife(item.key)
+  if (!life) return
+  item.frozen = true
+  item.date = inDays(life)
+  changed()
+}
+
+/** Thawing starts a much shorter one. */
+export function thaw (id) {
+  const item = fridge.find(i => i.id === id)
+  if (!item) return
+  item.frozen = false
+  item.date = inDays(thawLife(item.key))
+  changed()
+}
+
+export function emptyFridge () {
+  fridge.length = 0
+  clearFridge()
+  changed()
+}
+
+/* ── your own meals ────────────────────────────────────────────────── */
+
+export function addMeal (name, keys) {
+  myMeals.push({ id: nextId++, name, keys, mins: 30 })
+  changed()
+}
+
+export function removeMeal (id) {
+  const at = myMeals.findIndex(m => m.id === id)
+  if (at > -1) myMeals.splice(at, 1)
+  changed()
+}
+
+/** The display name for a fridge item, including hand-typed ones. */
+export function nameOf (item) {
+  return item.label ?? FOODS[item.key]?.label ?? item.key
+}
+
+/** Was this added by hand, rather than picked from the food list? */
+export const isUnknown = item => String(item.key).startsWith('own:')
