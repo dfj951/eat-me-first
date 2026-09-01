@@ -1,7 +1,9 @@
 /**
- * The week: tonight's meal in full, the next six days beneath it, and
- * the two things worth interrupting for — what's about to be wasted, and
- * what you'd have to buy.
+ * The week: tonight's meal in full, the next six days beneath it, and the
+ * one thing worth interrupting for — what's about to be wasted.
+ *
+ * Nothing here ever tells you to go shopping. Every meal shown is one you
+ * can cook right now with what you already have.
  */
 
 import { labelOf, canFreeze, freezeLife } from '../data/foods.js'
@@ -27,7 +29,7 @@ export function renderPlan () {
     return
   }
 
-  const { days, wasted, toBuy } = planWeek(state.fridge, state.myMeals)
+  const { days, wasted } = planWeek(state.fridge, state.myMeals)
   const tonight = days[0]
   const now = new Date()
 
@@ -43,16 +45,16 @@ export function renderPlan () {
           <span class="tag">${tonight.meal.mins} min</span>
           ${tonight.saves.length ? `<span class="tag save">Saves ${esc(lower(tonight.saves))}</span>` : ''}
           ${tonight.defrost.length ? '<span class="tag cold">From the freezer</span>' : ''}
-          ${tonight.missing.length ? `<span class="tag">Buy ${esc(lower(tonight.missing))}</span>` : ''}
         </div>
         <p class="made">Made with ${esc(lower(tonight.uses))}.</p>
       </div>`
     : `
       <div class="tonight">
         <p class="eyebrow">Cook tonight</p>
-        <h3>Not much to work with</h3>
-        <p class="why">There isn’t enough in the fridge to build a meal around.
-           Add a few more things, or treat tonight as a shopping night.</p>
+        <h3>Nothing to build on yet</h3>
+        <p class="why">There isn’t enough in the fridge to make a whole meal from.
+           Add a few more things — including the pasta, rice and tins in your cupboard,
+           since it only ever suggests what you already have.</p>
       </div>`
 
   /* ── what's about to be lost, and how to save it ─────────────────── */
@@ -89,13 +91,6 @@ export function renderPlan () {
       </div>`
     : ''
 
-  const shop = toBuy.length
-    ? `<div class="notice">
-        <h5>To make the week work, pick up</h5>
-        <div class="shop">${toBuy.map(k => `<span>${esc(labelOf(k))}</span>`).join('')}</div>
-      </div>`
-    : ''
-
   /* ── the rest of the week ────────────────────────────────────────── */
 
   const week = `<div class="week">${days.slice(1).map(entry => {
@@ -109,16 +104,15 @@ export function renderPlan () {
     if (!entry.meal) {
       return `<div class="day idle">${when}
         <div class="what">
-          <h4>Nothing left worth planning</h4>
-          <p>By here the fridge is empty — this is your shop.</p>
+          <h4>Nothing left to cook</h4>
+          <p>What’s left won’t make a whole meal on its own.</p>
         </div></div>`
     }
 
     return `<div class="day">${when}
       <div class="what">
         <h4>${esc(entry.meal.name)}</h4>
-        <p>${entry.saves.length ? `<span class="uses">Uses up ${esc(lower(entry.saves))}</span> &middot; ` : ''}${entry.meal.mins} min${
-          entry.missing.length ? ` &middot; buy ${esc(lower(entry.missing))}` : ''}</p>
+        <p>${entry.saves.length ? `<span class="uses">Uses up ${esc(lower(entry.saves))}</span> &middot; ` : ''}${entry.meal.mins} min</p>
         <p class="made">${esc(lower(entry.uses))}</p>
         ${entry.defrost.length
           ? `<p class="defrost">Take the ${esc(list(entry.defrost.map(labelOf)).toLowerCase())} out the night before</p>`
@@ -126,7 +120,7 @@ export function renderPlan () {
       </div></div>`
   }).join('')}</div>`
 
-  out.innerHTML = head + risk + unknownNote + shop + week
+  out.innerHTML = head + risk + unknownNote + week
 
   out.querySelectorAll('[data-freeze]').forEach(button =>
     button.addEventListener('click', () => state.freeze(Number(button.dataset.freeze))))

@@ -10,7 +10,10 @@ import * as state from '../state.js'
 import { escapeHtml as esc } from './html.js'
 
 const QUICK_ADD = ['milk', 'eggs', 'chicken', 'spinach', 'tomato', 'bread',
-  'cheddar', 'mushroom', 'yoghurt', 'pepper', 'potato', 'onion']
+  'cheddar', 'mushroom', 'yoghurt', 'pepper', 'potato', 'onion',
+  // Cupboard staples are worth adding once. They keep for a year so they
+  // stay in the list, and the planner only cooks with what it can see.
+  'pasta', 'rice', 'tintom', 'beans']
 
 let matches = []
 let highlighted = -1

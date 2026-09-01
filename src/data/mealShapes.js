@@ -50,12 +50,6 @@ export const ROLES = {
 /** Leafy greens want throwing in at the very end, or not cooking at all. */
 export const LEAFY = new Set(['spinach', 'kale', 'lettuce', 'rocket'])
 
-/** If a slot can't be filled from the fridge, this is what goes on the list. */
-const STAND_IN = {
-  protein: 'chicken', veg: 'onion', base: 'pasta',
-  dairy: 'cheddar', sauce: 'tintom', aroma: 'garlic', fruit: 'apple'
-}
-
 /** Can this food fill this slot? */
 export function slotFits (slot, key) {
   if (slot.only) return slot.only.includes(key)
@@ -63,9 +57,6 @@ export function slotFits (slot, key) {
   const pool = ROLES[slot.kind]
   return pool ? pool.includes(key) : false
 }
-
-/** What to buy when a slot comes up empty. */
-export const standIn = slot => slot.only?.[0] ?? STAND_IN[slot.kind]
 
 /* ── naming helpers ────────────────────────────────────────────────── */
 
