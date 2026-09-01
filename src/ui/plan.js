@@ -98,23 +98,32 @@ export function renderPlan () {
      That's a night to get something in. */
   const lastCooking = days.reduce((last, d, i) => (d.meal ? i : last), -1)
 
-  const week = `<div class="week">${days.slice(1).map(entry => {
-    const date = new Date(now.getTime() + entry.day * 86400000)
-    const when = `
+  const dayLabel = date => `
       <div class="when">
         <b>${DAY_NAMES[date.getDay()].slice(0, 3)}</b>
         <small>${date.getDate()}/${date.getMonth() + 1}</small>
       </div>`
 
+  const rows = []
+
+  for (const entry of days.slice(1)) {
+    // The empty run at the end of the week is summarised below rather
+    // than repeated as four identical rows.
+    if (!entry.meal && entry.day > lastCooking) break
+
+    const when = dayLabel(new Date(now.getTime() + entry.day * 86400000))
+
     if (!entry.meal) {
-      const [head, body] = entry.day < lastCooking
-        ? ['Takeaway', 'Nothing here makes a meal today, and what’s left is wanted later in the week. A night to order in.']
-        : ['Nothing left to cook', 'What’s left won’t make a whole meal on its own.']
-      return `<div class="day idle">${when}
-        <div class="what"><h4>${head}</h4><p>${body}</p></div></div>`
+      rows.push(`<div class="day idle">${when}
+        <div class="what">
+          <h4>Takeaway</h4>
+          <p>Nothing here makes a meal today, and what’s left is wanted later
+             in the week. A night to order in.</p>
+        </div></div>`)
+      continue
     }
 
-    return `<div class="day">${when}
+    rows.push(`<div class="day">${when}
       <div class="what">
         <h4>${esc(entry.meal.name)}</h4>
         <p>${entry.saves.length ? `<span class="uses">Uses up ${esc(lower(entry.saves))}</span> &middot; ` : ''}${entry.meal.mins} min</p>
@@ -122,8 +131,24 @@ export function renderPlan () {
         ${entry.defrost.length
           ? `<p class="defrost">Take the ${esc(list(entry.defrost.map(labelOf)).toLowerCase())} out the night before</p>`
           : ''}
-      </div></div>`
-  }).join('')}</div>`
+      </div></div>`)
+  }
+
+  // Once the food runs out, say so once and say what to do about it.
+  if (lastCooking < 6) {
+    const from = new Date(now.getTime() + Math.max(1, lastCooking + 1) * 86400000)
+    rows.push(`<div class="day idle">
+      <div class="when">
+        <b>${DAY_NAMES[from.getDay()].slice(0, 3)}</b>
+        <small>onwards</small>
+      </div>
+      <div class="what">
+        <h4>Time for a shop</h4>
+        <p>The fridge runs out here. A shop, or something ordered in.</p>
+      </div></div>`)
+  }
+
+  const week = `<div class="week">${rows.join('')}</div>`
 
   out.innerHTML = head + risk + unknownNote + week
 
