@@ -93,6 +93,11 @@ export function renderPlan () {
 
   /* ── the rest of the week ────────────────────────────────────────── */
 
+  /* A blank day with cooking still to come is a gap in the middle of the
+     week, not the end of the food: something is being saved for later.
+     That's a night to get something in. */
+  const lastCooking = days.reduce((last, d, i) => (d.meal ? i : last), -1)
+
   const week = `<div class="week">${days.slice(1).map(entry => {
     const date = new Date(now.getTime() + entry.day * 86400000)
     const when = `
@@ -102,9 +107,8 @@ export function renderPlan () {
       </div>`
 
     if (!entry.meal) {
-      const [head, body] = entry.couldRepeat
-        ? ['A night off', `There’s enough for ${esc(entry.couldRepeat.toLowerCase())} again,
-           but you’ve had it this week — leftovers, or something out.`]
+      const [head, body] = entry.day < lastCooking
+        ? ['Takeaway', 'Nothing here makes a meal today, and what’s left is wanted later in the week. A night to order in.']
         : ['Nothing left to cook', 'What’s left won’t make a whole meal on its own.']
       return `<div class="day idle">${when}
         <div class="what"><h4>${head}</h4><p>${body}</p></div></div>`

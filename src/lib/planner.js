@@ -156,14 +156,10 @@ export function planWeek (fridge, myMeals = []) {
 
   for (let day = 0; day < 7; day++) {
     let best = null
-    // If a day comes back empty only because everything was a repeat,
-    // say so rather than claiming the fridge is bare.
-    let blocked = null
 
     for (const meal of myMeals) {
       const attempt = buildFromMine(meal, stock, day)
-      if (!attempt) continue
-      if (tooSoon(attempt.meal.name)) { blocked ??= attempt.meal.name; continue }
+      if (!attempt || tooSoon(attempt.meal.name)) continue
       if (recentNames.includes(attempt.meal.name)) attempt.score -= REPEAT_NAME
       if (!best || attempt.score > best.score) best = { ...attempt, shapeId: 'mine' }
     }
@@ -173,7 +169,7 @@ export function planWeek (fridge, myMeals = []) {
       if (!attempt) continue
 
       const { name, isClassic } = nameFor(shape, attempt.chosen)
-      if (tooSoon(name)) { blocked ??= name; continue }
+      if (tooSoon(name)) continue
       if (isClassic) attempt.score += CLASSIC_BONUS
       if (shape.id === 'pudding') attempt.score -= PUDDING_PENALTY
       if (recentShapes.includes(shape.id)) attempt.score -= REPEAT_SHAPE
@@ -214,7 +210,7 @@ export function planWeek (fridge, myMeals = []) {
         defrost: used.filter(i => i.frozen && needsDefrosting(i.key)).map(i => i.key)
       })
     } else {
-      days.push({ day, meal: null, couldRepeat: blocked })
+      days.push({ day, meal: null })
       yesterday = ''   // a blank day clears the way for it again tomorrow
     }
   }
