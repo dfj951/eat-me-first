@@ -6,6 +6,10 @@ import { VitePWA } from 'vite-plugin-pwa'
 // host that serves from the root.
 export default defineConfig({
   base: '/eat-me-first/',
+  // Vite assumes a very modern browser by default and leaves syntax like
+  // ??= untouched, which older iPhones reject outright — the page just goes
+  // blank. This converts it down so Safari 13 and up can run the app.
+  build: { target: ['es2019', 'safari13'] },
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',
