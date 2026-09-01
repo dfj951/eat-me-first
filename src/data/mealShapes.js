@@ -74,7 +74,7 @@ export const SHAPES = [
     id: 'grill',
     mins: 25,
     slots: [
-      { kind: 'protein', min: 1, max: 1, only: ['steak', 'lambchops', 'porkchops', 'gammon', 'sausages', 'burgers', 'salmon', 'whitefish', 'fishfingers', 'chickenthigh', 'turkey'] },
+      { kind: 'protein', min: 1, max: 1, only: ['steak', 'lambchops', 'porkchops', 'gammon', 'sausages', 'burgers', 'salmon', 'whitefish', 'fishfingers', 'chicken', 'chickenthigh', 'cookedchicken', 'turkey', 'halloumi'] },
       { kind: 'base', min: 0, max: 1, only: ['ovenchips', 'potato', 'sweetpotato'] },
       { kind: 'veg', min: 0, max: 2, deny: ['lettuce', 'cucumber', 'rocket', 'avocado', 'spinach', 'kale'] },
       { kind: 'protein', min: 0, max: 2, only: ['eggs', 'bacon', 'ham'] }
@@ -83,7 +83,10 @@ export const SHAPES = [
     // when there aren't, and just "Steak" when it's only the steak.
     name: p => {
       const protein = picked(p, 'protein', 1)[0]
-      const side = picked(p, 'base', 1)[0]
+      // a side is plural on the plate: chips, potatoes
+      const SIDES = { potato: 'potatoes', sweetpotato: 'sweet potatoes' }
+      const baseKey = (p.base ?? [])[0]?.key
+      const side = baseKey ? (SIDES[baseKey] ?? picked(p, 'base', 1)[0]) : undefined
       const veg = picked(p, 'veg', 1)[0]
       if (side) return cap(`${protein} and ${side}`)
       if (veg) return cap(`${protein} with ${veg}`)
@@ -137,7 +140,7 @@ export const SHAPES = [
     slots: [
       { kind: 'base', min: 1, max: 1, only: ['potato', 'sweetpotato', 'gnocchi', 'ovenchips', 'squash'] },
       { kind: 'protein', min: 1, max: 1, only: ['sausages', 'chickenthigh', 'chicken', 'chorizo', 'salmon', 'whitefish', 'halloumi', 'mince', 'porkchops', 'beans', 'chickpeas'] },
-      { kind: 'veg', min: 1, max: 3, only: ['pepper', 'onion', 'courgette', 'tomato', 'carrot', 'aubergine', 'broccoli', 'leek', 'fennel', 'parsnip', 'cauliflower', 'mushroom'] },
+      { kind: 'veg', min: 0, max: 3, only: ['pepper', 'onion', 'courgette', 'tomato', 'carrot', 'aubergine', 'broccoli', 'leek', 'fennel', 'parsnip', 'cauliflower', 'mushroom'] },
       { kind: 'sauce', min: 0, max: 1, only: ['tintom'] },
       { kind: 'dairy', min: 0, max: 1, only: ['mozzarella', 'feta', 'cheddar', 'parmesan'] }
     ],
@@ -198,8 +201,8 @@ export const SHAPES = [
     mins: 12,
     slots: [
       { kind: 'base', min: 1, max: 1, only: ['bread', 'tortilla'] },
-      { kind: 'dairy', min: 1, max: 1, only: ['cheddar', 'mozzarella', 'feta', 'creamcheese'] },
-      { kind: 'protein', min: 0, max: 1, only: ['ham', 'bacon', 'chicken', 'cookedchicken', 'tuna', 'chorizo', 'smokedsalmon', 'eggs', 'hummus'] },
+      { kind: 'dairy', min: 0, max: 1, only: ['cheddar', 'mozzarella', 'feta', 'creamcheese'] },
+      { kind: 'protein', min: 1, max: 1, only: ['ham', 'bacon', 'chicken', 'cookedchicken', 'tuna', 'chorizo', 'smokedsalmon', 'eggs', 'hummus', 'cheddar'] },
       { kind: 'veg', min: 0, max: 2, only: ['tomato', 'onion', 'lettuce', 'rocket', 'cucumber', 'pepper', 'mushroom', 'spinach', 'avocado'] }
     ],
     name: p => cap(join([...picked(p, 'dairy', 1), ...picked(p, 'protein', 1)])) + ' toastie',
@@ -222,7 +225,7 @@ export const SHAPES = [
     slots: [
       { kind: 'base', min: 1, max: 1, only: ['rice', 'couscous', 'noodles', 'potato'] },
       { kind: 'protein', min: 1, max: 1, only: ['chicken', 'chickenthigh', 'beans', 'chickpeas', 'halloumi', 'tofu', 'salmon', 'prawns', 'eggs', 'lentils', 'cookedchicken', 'turkey'] },
-      { kind: 'veg', min: 1, max: 3, only: ['pepper', 'broccoli', 'carrot', 'sweetpotato', 'avocado', 'cucumber', 'tomato', 'spinach', 'courgette', 'squash', 'peas', 'rocket', 'beetroot'] },
+      { kind: 'veg', min: 0, max: 3, only: ['pepper', 'broccoli', 'carrot', 'sweetpotato', 'avocado', 'cucumber', 'tomato', 'spinach', 'courgette', 'squash', 'peas', 'rocket', 'beetroot'] },
       { kind: 'dairy', min: 0, max: 1, only: ['feta', 'yoghurt', 'halloumi'] },
       { kind: 'aroma', min: 0, max: 2, only: ['lemon', 'lime', 'coriander', 'chilli', 'garlic'] }
     ],

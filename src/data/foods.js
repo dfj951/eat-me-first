@@ -236,6 +236,7 @@ export const COOK_NAMES = {
   berries: 'berry', apple: 'apple', banana: 'banana', orange: 'orange',
   pear: 'pear', plum: 'plum', grapes: 'grape', tintom: 'tomato', beans: 'bean',
   chickpeas: 'chickpea', lentils: 'lentil', noodles: 'noodle', olives: 'olive',
+  tuna: 'tuna',
   ovenchips: 'chips', cremefraiche: 'crème fraîche', creamcheese: 'cream cheese'
 }
 
