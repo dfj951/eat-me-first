@@ -127,7 +127,7 @@ export function mountFridge () {
     .addEventListener('click', () => state.emptyFridge())
 }
 
-/** One tap for whatever you keep buying. Hidden until you've bought something. */
+/** One tap for whatever you keep buying. Hidden until there is something in it. */
 export function renderChips () {
   const block = document.getElementById('chipsBlock')
   const keys = state.recent.filter(key => FOODS[key]).slice(0, CHIP_COUNT)
@@ -143,7 +143,7 @@ export function renderChips () {
     return `<span class="chip">
       <button class="chip-add" type="button" data-k="${key}">${label}</button>
       <button class="chip-x" type="button" data-forget="${key}"
-              aria-label="Remove ${label} from recently added">&times;</button>
+              aria-label="Remove ${label} from your usuals">&times;</button>
     </span>`
   }).join('')
 }
