@@ -188,12 +188,14 @@ function renderPanel () {
              <input class="control" id="panelDate" type="date" value="${date}">
            </div>`}
 
-      ${item
-        ? `<div class="field">
-             <label for="panelUses">How many meals' worth?</label>
-             <input class="control" id="panelUses" type="number" min="1" max="20" value="${state.usesOf(item)}">
-           </div>`
-        : ''}
+      <div class="field">
+        <label for="panelUses">How many meals' worth?</label>
+        <input class="control" id="panelUses" type="number" min="1" max="20"
+               inputmode="numeric" value="${
+                 item ? state.usesOf(item)
+                   : pending.mode === 'add' ? pending.food.uses : 1
+               }">
+      </div>
 
       ${own
         ? `<div class="field"><label for="panelRole">What is it?</label>${roleMenu(item?.role ?? '')}</div>`
@@ -215,8 +217,10 @@ function renderPanel () {
   document.getElementById('panelNoDate').addEventListener('click', () => {
     const role = val('panelRole') === 'none' ? null : val('panelRole') || null
 
-    if (pending.mode === 'add') state.addFood(pending.food.key, null, true)
-    else if (pending.mode === 'new') state.addUnknown(val('panelName'), null, role, true)
+    const uses = Number(val('panelUses'))
+
+    if (pending.mode === 'add') state.addFood(pending.food.key, { noDate: true, uses })
+    else if (pending.mode === 'new') state.addUnknown(val('panelName'), { role, noDate: true, uses })
     else {
       // in edit mode this toggles: off puts the suggested date back
       const turningOff = item.noDate
@@ -234,13 +238,11 @@ function renderPanel () {
     const date = val('panelDate')
     const role = val('panelRole') === 'none' ? null : val('panelRole') || null
 
-    if (pending.mode === 'add') state.addFood(pending.food.key, date)
-    else if (pending.mode === 'new') state.addUnknown(val('panelName'), date, role)
-    else {
-      state.updateItem(pending.id, {
-        label: val('panelName'), date, uses: Number(val('panelUses')), role
-      })
-    }
+    const uses = Number(val('panelUses'))
+
+    if (pending.mode === 'add') state.addFood(pending.food.key, { date, uses })
+    else if (pending.mode === 'new') state.addUnknown(val('panelName'), { date, role, uses })
+    else state.updateItem(pending.id, { label: val('panelName'), date, uses, role })
     closePanel()
   })
 

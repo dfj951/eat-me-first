@@ -63,7 +63,7 @@ function changed () {
    than an absurd countdown. */
 const NO_DATE = () => inDays(3650)
 
-export function addFood (key, date, noDate = false) {
+export function addFood (key, { date, noDate = false, uses } = {}) {
   const food = FOODS[key]
   if (!food) return
   fridge.push({
@@ -71,9 +71,9 @@ export function addFood (key, date, noDate = false) {
     key,
     noDate,
     date: noDate ? NO_DATE() : (date || inDays(Math.min(food.days, 14))),
-    // How many meals this will stretch to. Starts at the typical amount
-    // for a normal shop; you can say otherwise.
-    uses: food.uses
+    // How many meals this will stretch to. Offered as the typical amount
+    // for a normal shop, but it's yours to set.
+    uses: uses || food.uses
   })
   remember(key)
   changed()
@@ -84,7 +84,7 @@ export function addFood (key, date, noDate = false) {
  * it, but the dates are still watched — and the plan says so plainly
  * rather than quietly ignoring it.
  */
-export function addUnknown (name, date, role = null, noDate = false) {
+export function addUnknown (name, { date, role = null, noDate = false, uses = 1 } = {}) {
   const clean = String(name).trim()
   if (!clean) return
   fridge.push({
@@ -93,7 +93,7 @@ export function addUnknown (name, date, role = null, noDate = false) {
     label: clean,
     noDate,
     date: noDate ? NO_DATE() : (date || inDays(5)),
-    uses: 1,
+    uses,
     // Unset until you say what it is. Without a role no meal can place it.
     role
   })
