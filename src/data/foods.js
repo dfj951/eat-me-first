@@ -273,6 +273,22 @@ export function freezeLife (key) {
 
 export const canFreeze = key => freezeLife(key) > 0
 
+/**
+ * Things that go straight from the freezer into the pan or the oven.
+ * Oven chips, fish fingers and frozen veg are all made to be cooked from
+ * frozen — telling someone to defrost them overnight is just wrong.
+ *
+ * Everything not in here is raw meat, fish, or something cooked that
+ * genuinely wants taking out the night before.
+ */
+export const COOK_FROM_FROZEN = new Set([
+  'ovenchips', 'fishfingers', 'peas', 'sweetcorn', 'greenbeans', 'sugarsnap',
+  'gnocchi', 'spinach', 'kale', 'berries', 'prawns', 'bread'
+])
+
+/** Does this need taking out the night before, or can it go straight in? */
+export const needsDefrosting = key => !COOK_FROM_FROZEN.has(key)
+
 /** Meat and fish want using the day they thaw. Everything else, a few days. */
 export function thawLife (key) {
   const food = FOODS[key]

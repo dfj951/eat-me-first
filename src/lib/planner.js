@@ -18,7 +18,7 @@
  * is planned, which is what stops it proposing spinach five nights running.
  */
 
-import { FOODS } from '../data/foods.js'
+import { FOODS, needsDefrosting } from '../data/foods.js'
 import { SHAPES, CLASSICS, slotFits } from '../data/mealShapes.js'
 import { daysLeft } from './dates.js'
 
@@ -174,7 +174,10 @@ export function planWeek (fridge, myMeals = []) {
         // Only things genuinely at risk count as "saved".
         saves: used.filter(i => i.expiresIn - day <= 2 && !i.frozen).map(i => i.key),
         uses: used.map(i => i.key),
-        defrost: used.filter(i => i.frozen).map(i => i.key)
+        // everything frozen this meal uses, and separately the ones that
+        // actually need taking out the night before
+        fromFreezer: used.filter(i => i.frozen).map(i => i.key),
+        defrost: used.filter(i => i.frozen && needsDefrosting(i.key)).map(i => i.key)
       })
     } else {
       days.push({ day, meal: null })

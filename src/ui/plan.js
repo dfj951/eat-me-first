@@ -44,7 +44,7 @@ export function renderPlan () {
         <div class="meta">
           <span class="tag">${tonight.meal.mins} min</span>
           ${tonight.saves.length ? `<span class="tag save">Saves ${esc(lower(tonight.saves))}</span>` : ''}
-          ${tonight.defrost.length ? '<span class="tag cold">From the freezer</span>' : ''}
+          ${tonight.fromFreezer.length ? '<span class="tag cold">From the freezer</span>' : ''}
         </div>
         <p class="made">Made with ${esc(lower(tonight.uses))}.</p>
       </div>`
