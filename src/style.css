@@ -439,6 +439,31 @@ button, input { font: inherit; color: inherit; }
 
 .day .what { padding: 15px 22px 15px 6px; }
 .day .what h4 { font-size: 17px; font-weight: 600; }
+.day-head { display: flex; align-items: baseline; gap: 10px; }
+.day-head h4 { flex: 1; min-width: 0; }
+
+/* turning a meal down: quiet until you look for it */
+.nope {
+  border: 1px solid transparent;
+  background: none;
+  color: var(--faint);
+  font-size: 11.5px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  cursor: pointer;
+  white-space: nowrap;
+  opacity: .55;
+}
+.nope:hover { opacity: 1; border-color: var(--now); color: var(--now); }
+.tonight .nope { margin-left: auto; }
+
+.turned-down summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.btn-ghost.tiny { padding: 3px 9px; font-size: 11.5px; }
 .day .what p { margin: 3px 0 0; font-size: 13px; color: var(--muted); }
 .day .what .made { margin-top: 3px; }
 .day .what .uses { color: var(--now); font-weight: 600; }

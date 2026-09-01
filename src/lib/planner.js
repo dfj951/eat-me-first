@@ -137,9 +137,11 @@ const flatten = chosen => Object.values(chosen).flat()
  *
  * @param {Array} fridge  [{ id, key, date, frozen }]
  * @param {Array} myMeals [{ name, keys, mins }]
+ * @param {Array} disliked meal names never to offer
  * @returns {{ days, wasted }}
  */
-export function planWeek (fridge, myMeals = []) {
+export function planWeek (fridge, myMeals = [], disliked = []) {
+  const unwanted = new Set(disliked)
   const stock = toStock(fridge)
   const days = []
   const recentShapes = []      // don't repeat a shape two days running
@@ -160,6 +162,7 @@ export function planWeek (fridge, myMeals = []) {
     for (const meal of myMeals) {
       const attempt = buildFromMine(meal, stock, day)
       if (!attempt || tooSoon(attempt.meal.name)) continue
+      if (unwanted.has(attempt.meal.name)) continue
       if (recentNames.includes(attempt.meal.name)) attempt.score -= REPEAT_NAME
       if (!best || attempt.score > best.score) best = { ...attempt, shapeId: 'mine' }
     }
@@ -169,7 +172,7 @@ export function planWeek (fridge, myMeals = []) {
       if (!attempt) continue
 
       const { name, isClassic } = nameFor(shape, attempt.chosen)
-      if (tooSoon(name)) continue
+      if (tooSoon(name) || unwanted.has(name)) continue
       if (isClassic) attempt.score += CLASSIC_BONUS
       if (shape.id === 'pudding') attempt.score -= PUDDING_PENALTY
       if (recentShapes.includes(shape.id)) attempt.score -= REPEAT_SHAPE

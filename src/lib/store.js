@@ -12,6 +12,7 @@
 const FRIDGE_KEY = 'eat-me-first/fridge'
 const MEALS_KEY = 'eat-me-first/meals'
 const RECENT_KEY = 'eat-me-first/recent'
+const DISLIKE_KEY = 'eat-me-first/disliked'
 
 function read (key, fallback) {
   try {
@@ -51,6 +52,13 @@ export const loadRecent = () => {
 }
 
 export const saveRecent = keys => write(RECENT_KEY, keys)
+
+export const loadDislikes = () => {
+  const saved = read(DISLIKE_KEY, [])
+  return Array.isArray(saved) ? saved : []
+}
+
+export const saveDislikes = names => write(DISLIKE_KEY, names)
 
 export function clearFridge () {
   try { localStorage.removeItem(FRIDGE_KEY) } catch { /* nothing to do */ }

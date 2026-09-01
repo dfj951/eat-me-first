@@ -29,7 +29,7 @@ export function renderPlan () {
     return
   }
 
-  const { days, wasted } = planWeek(state.fridge, state.myMeals)
+  const { days, wasted } = planWeek(state.fridge, state.myMeals, state.disliked)
   const tonight = days[0]
   const now = new Date()
 
@@ -45,6 +45,7 @@ export function renderPlan () {
           <span class="tag">${tonight.meal.mins} min</span>
           ${tonight.saves.length ? `<span class="tag save">Saves ${esc(lower(tonight.saves))}</span>` : ''}
           ${tonight.fromFreezer.length ? '<span class="tag cold">From the freezer</span>' : ''}
+          <button class="nope" type="button" data-nope="${esc(tonight.meal.name)}">Not for me</button>
         </div>
         <p class="made">Made with ${esc(lower(tonight.uses))}.</p>
       </div>`
@@ -125,7 +126,10 @@ export function renderPlan () {
 
     rows.push(`<div class="day">${when}
       <div class="what">
-        <h4>${esc(entry.meal.name)}</h4>
+        <div class="day-head">
+          <h4>${esc(entry.meal.name)}</h4>
+          <button class="nope" type="button" data-nope="${esc(entry.meal.name)}">Not for me</button>
+        </div>
         <p>${entry.saves.length ? `<span class="uses">Uses up ${esc(lower(entry.saves))}</span> &middot; ` : ''}${entry.meal.mins} min</p>
         <p class="made">${esc(lower(entry.uses))}</p>
         ${entry.defrost.length
@@ -154,4 +158,7 @@ export function renderPlan () {
 
   out.querySelectorAll('[data-freeze]').forEach(button =>
     button.addEventListener('click', () => state.freeze(Number(button.dataset.freeze))))
+
+  out.querySelectorAll('[data-nope]').forEach(button =>
+    button.addEventListener('click', () => state.dislike(button.dataset.nope)))
 }

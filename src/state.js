@@ -12,7 +12,7 @@
 import { FOODS, freezeLife, thawLife } from './data/foods.js'
 import { inDays } from './lib/dates.js'
 import { loadFridge, saveFridge, loadMeals, saveMeals, clearFridge,
-  loadRecent, saveRecent } from './lib/store.js'
+  loadRecent, saveRecent, loadDislikes, saveDislikes } from './lib/store.js'
 
 export const fridge = loadFridge()
 export const myMeals = loadMeals()
@@ -21,6 +21,11 @@ export const myMeals = loadMeals()
    you buy: after a week it's your actual shopping, not my list. */
 export const recent = loadRecent()
 const RECENT_MAX = 14
+
+/* Meals you've turned down. Kept by name, so it covers both the ones the
+   app invents and the classics. Nothing is ever lost: everything here can
+   be put back from the list in the fridge panel. */
+export const disliked = loadDislikes()
 
 function remember (key) {
   const at = recent.indexOf(key)
@@ -45,6 +50,7 @@ function changed () {
   saveFridge(fridge)
   saveMeals(myMeals)
   saveRecent(recent)
+  saveDislikes(disliked)
   for (const fn of listeners) fn()
 }
 
@@ -129,6 +135,19 @@ export function thaw (id) {
 export function emptyFridge () {
   fridge.length = 0
   clearFridge()
+  changed()
+}
+
+/* ── meals you'd rather not be offered ─────────────────────────────── */
+
+export function dislike (name) {
+  if (name && !disliked.includes(name)) disliked.push(name)
+  changed()
+}
+
+export function allow (name) {
+  const at = disliked.indexOf(name)
+  if (at > -1) disliked.splice(at, 1)
   changed()
 }
 
