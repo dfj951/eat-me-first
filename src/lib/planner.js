@@ -201,8 +201,12 @@ export function planWeek (fridge, myMeals = []) {
       days.push({
         day,
         meal: best.meal,
-        // Only things genuinely at risk count as "saved".
-        saves: used.filter(i => i.expiresIn - day <= 2 && !i.frozen).map(i => i.key),
+        // "Uses up" means finished off, not merely used. `left` has already
+        // been spent above, so zero means this meal took the last of it.
+        // Only worth flagging for things that would otherwise have gone off.
+        saves: used
+          .filter(i => i.left === 0 && !i.frozen && i.expiresIn <= 7)
+          .map(i => i.key),
         uses: used.map(i => i.key),
         // everything frozen this meal uses, and separately the ones that
         // actually need taking out the night before
