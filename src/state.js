@@ -57,13 +57,13 @@ function changed () {
 /* ── the fridge ────────────────────────────────────────────────────── */
 
 /** Add a known food, dated by how long it usually keeps. */
-export function addFood (key) {
+export function addFood (key, date) {
   const food = FOODS[key]
   if (!food) return
   fridge.push({
     id: nextId++,
     key,
-    date: inDays(Math.min(food.days, 14)),
+    date: date || inDays(Math.min(food.days, 14)),
     // How many meals this will stretch to. Starts at the typical amount
     // for a normal shop; you can say otherwise.
     uses: food.uses
@@ -77,18 +77,32 @@ export function addFood (key) {
  * it, but the dates are still watched — and the plan says so plainly
  * rather than quietly ignoring it.
  */
-export function addUnknown (name) {
+export function addUnknown (name, date, role = null) {
   const clean = String(name).trim()
   if (!clean) return
   fridge.push({
     id: nextId++,
     key: 'own:' + clean.toLowerCase(),
     label: clean,
-    date: inDays(5),
+    date: date || inDays(5),
     uses: 1,
     // Unset until you say what it is. Without a role no meal can place it.
-    role: null
+    role
   })
+  changed()
+}
+
+/** Change anything about an item in one go. */
+export function updateItem (id, changes) {
+  const item = fridge.find(i => i.id === id)
+  if (!item) return
+  if (changes.label && isUnknown(item)) {
+    item.label = String(changes.label).trim()
+    item.key = 'own:' + item.label.toLowerCase()
+  }
+  if (changes.date) item.date = changes.date
+  if (changes.uses) item.uses = Math.max(1, Math.min(20, changes.uses))
+  if ('role' in changes) item.role = changes.role || null
   changed()
 }
 
@@ -200,3 +214,7 @@ export function nameOf (item) {
 
 /** Was this added by hand, rather than picked from the food list? */
 export const isUnknown = item => String(item.key).startsWith('own:')
+
+/** The date we'd suggest for a food: today plus however long it usually keeps. */
+export const suggestedDate = key =>
+  inDays(FOODS[key] ? Math.min(FOODS[key].days, 14) : 5)

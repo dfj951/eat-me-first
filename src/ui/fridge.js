@@ -36,6 +36,16 @@ const ROLE_CHOICES = [
 let matches = []
 let highlighted = -1
 
+/* Nothing goes into the fridge until the date is confirmed. Picking a
+   food opens this panel with a sensible date already filled in, so it
+   stays quick — but you have looked at it, which is the point. */
+let pending = null
+
+const openAdd = food => { pending = { mode: 'add', food }; renderFridge() }
+const openNew = name => { pending = { mode: 'new', name }; renderFridge() }
+const openEdit = id => { pending = { mode: 'edit', id }; renderFridge() }
+const closePanel = () => { pending = null; renderFridge() }
+
 export function mountFridge () {
   const search = document.getElementById('find')
   const hits = document.getElementById('hits')
@@ -74,11 +84,9 @@ export function mountFridge () {
   }
 
   function pick (index) {
-    if (index === matches.length || !matches.length) {
-      state.addUnknown(search.value)
-    } else {
-      state.addFood(matches[index].key)
-    }
+    const typed = search.value.trim()
+    if (index === matches.length || !matches.length) openNew(typed)
+    else openAdd(matches[index])
     search.value = ''
     close()
   }
@@ -110,7 +118,7 @@ export function mountFridge () {
 
   document.getElementById('chips').addEventListener('click', e => {
     const chip = e.target.closest('.chip')
-    if (chip) state.addFood(chip.dataset.k)
+    if (chip) openAdd(FOODS[chip.dataset.k])
   })
 
   document.getElementById('empty')
@@ -138,8 +146,85 @@ export function renderChips () {
     .join('')
 }
 
+function roleMenu (selected) {
+  return `<select class="control" id="panelRole">
+    ${ROLE_CHOICES.map(([value, text]) => `
+      <option value="${value}" ${(selected ?? '') === value ? 'selected' : ''}>${esc(text)}</option>`).join('')}
+  </select>`
+}
+
+/** The add / edit panel, or nothing when there is nothing pending. */
+function renderPanel () {
+  const host = document.getElementById('pendingHost')
+  if (!pending) { host.innerHTML = ''; return }
+
+  const item = pending.mode === 'edit'
+    ? state.fridge.find(i => i.id === pending.id)
+    : null
+  if (pending.mode === 'edit' && !item) { pending = null; host.innerHTML = ''; return }
+
+  const own = pending.mode === 'new' || (item && state.isUnknown(item))
+  const name = pending.mode === 'add' ? pending.food.label
+    : pending.mode === 'new' ? pending.name
+      : state.nameOf(item)
+  const date = item ? item.date
+    : pending.mode === 'add' ? state.suggestedDate(pending.food.key) : state.suggestedDate('')
+
+  host.innerHTML = `
+    <div class="panel-form">
+      <p class="eyebrow">${pending.mode === 'edit' ? 'Edit' : 'Adding'}</p>
+
+      ${own
+        ? `<div class="field">
+             <label for="panelName">Name</label>
+             <input class="control" id="panelName" value="${esc(name)}">
+           </div>`
+        : `<p class="panel-name">${esc(name)}</p>`}
+
+      <div class="field">
+        <label for="panelDate">When does it go off?</label>
+        <input class="control" id="panelDate" type="date" value="${date}">
+      </div>
+
+      ${item
+        ? `<div class="field">
+             <label for="panelUses">How many meals' worth?</label>
+             <input class="control" id="panelUses" type="number" min="1" max="20" value="${state.usesOf(item)}">
+           </div>`
+        : ''}
+
+      ${own
+        ? `<div class="field"><label for="panelRole">What is it?</label>${roleMenu(item?.role ?? '')}</div>`
+        : ''}
+
+      <div class="panel-actions">
+        <button class="btn" id="panelSave" type="button">${pending.mode === 'edit' ? 'Save' : 'Add to fridge'}</button>
+        <button class="btn-ghost" id="panelCancel" type="button">Cancel</button>
+      </div>
+    </div>`
+
+  const val = id => document.getElementById(id)?.value
+  document.getElementById('panelCancel').addEventListener('click', closePanel)
+  document.getElementById('panelSave').addEventListener('click', () => {
+    const date = val('panelDate')
+    const role = val('panelRole') === 'none' ? null : val('panelRole') || null
+
+    if (pending.mode === 'add') state.addFood(pending.food.key, date)
+    else if (pending.mode === 'new') state.addUnknown(val('panelName'), date, role)
+    else {
+      state.updateItem(pending.id, {
+        label: val('panelName'), date, uses: Number(val('panelUses')), role
+      })
+    }
+    closePanel()
+  })
+
+  document.getElementById(own ? 'panelName' : 'panelDate')?.focus()
+}
+
 /** Redraw the list. Called by main.js whenever the state changes. */
 export function renderFridge () {
+  renderPanel()
   const host = document.getElementById('listHost')
   const count = document.getElementById('count')
   const items = state.fridge
@@ -195,10 +280,17 @@ export function renderFridge () {
         <button class="snow" type="button" data-freeze="${item.id}"
                 ${item.frozen ? 'data-on="1"' : ''} ${freezable || item.frozen ? '' : 'disabled'}
                 title="${esc(tip)}" aria-label="${item.frozen ? 'Thaw' : 'Freeze'} ${esc(name)}">&#10052;</button>
+        ${state.isUnknown(item)
+          ? `<button class="snow" type="button" data-edit="${item.id}"
+                     title="Edit ${esc(name)}" aria-label="Edit ${esc(name)}">&#9998;</button>`
+          : ''}
         <button class="bin" type="button" data-remove="${item.id}"
                 aria-label="Remove ${esc(name)}">&times;</button>
       </div>`
   }).join('')}</div>`
+
+  host.querySelectorAll('[data-edit]').forEach(button =>
+    button.addEventListener('click', () => openEdit(Number(button.dataset.edit))))
 
   host.querySelectorAll('[data-role]').forEach(select =>
     select.addEventListener('change', () =>
