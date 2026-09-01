@@ -219,6 +219,13 @@ export function exportAll () {
     fridge, myMeals, disliked, recent, history }
 }
 
+/** Swap in a whole fridge, from a shared link. */
+export function replaceFridge (items) {
+  fridge.length = 0
+  fridge.push(...items.map(item => ({ ...item, id: nextId++ })))
+  changed()
+}
+
 /** Replace everything from a backup file. Returns false if it isn't one. */
 export function importAll (data) {
   if (!data || data.app !== 'eat-me-first' || !Array.isArray(data.fridge)) return false

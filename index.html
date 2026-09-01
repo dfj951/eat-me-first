@@ -29,6 +29,15 @@
     </div>
   </header>
 
+  <div class="offer" id="sharedOffer" hidden>
+    <p><b>Someone sent you a fridge.</b> <span id="sharedCount"></span> Loading it replaces
+       what's in yours — back yours up first if you want to keep it.</p>
+    <div class="offer-actions">
+      <button class="btn" id="sharedLoad" type="button">Load it</button>
+      <button class="btn-ghost" id="sharedIgnore" type="button">No thanks</button>
+    </div>
+  </div>
+
   <main class="wrap">
 
     <!-- ── what you have ─────────────────────────────────────────── -->
@@ -124,6 +133,7 @@
         <div id="dislikedHost"></div>
 
         <div class="tools">
+          <button class="btn-ghost" id="share" type="button">Share</button>
           <button class="btn-ghost" id="backup" type="button">Back up</button>
           <button class="btn-ghost" id="restore" type="button">Restore</button>
           <button class="btn-ghost" id="empty" type="button">Empty the fridge</button>

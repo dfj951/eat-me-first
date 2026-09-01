@@ -327,6 +327,26 @@ button, input { font: inherit; color: inherit; }
 .panel-name { margin: 0; font-size: 16px; font-weight: 600; }
 .panel-actions { display: flex; gap: 8px; }
 .tools { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.offer {
+  max-width: 1200px;
+  margin: 16px auto 0;
+  padding: 14px 18px;
+  border: 1px solid var(--accent);
+  border-left-width: 3px;
+  border-radius: 8px;
+  background: var(--surface);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+.offer p { margin: 0; flex: 1; min-width: 220px; line-height: 1.5; }
+.offer b { color: var(--text); }
+.offer-actions { display: flex; gap: 8px; }
+.offer .btn { padding: 8px 16px; }
 .tools .btn-ghost { flex: 1; min-width: 96px; }
 
 .btn.cooked { margin-top: 15px; width: 100%; }

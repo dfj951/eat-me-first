@@ -6,6 +6,7 @@
 import { FOODS, canFreeze } from '../data/foods.js'
 import { searchFoods } from '../lib/search.js'
 import { startScanning, canScan } from '../lib/scanner.js'
+import { encodeFridge, decodeFromUrl, clearUrl } from '../lib/share.js'
 import { daysLeft, daysText, urgency, shortDate } from '../lib/dates.js'
 import * as state from '../state.js'
 import { escapeHtml as esc } from './html.js'
@@ -233,6 +234,54 @@ export function mountFridge () {
     URL.revokeObjectURL(url)
     note('')
   })
+
+  /* The fridge travels in the link itself, after the #, which browsers
+     never send to a server. Nothing about your food reaches anyone but
+     whoever you send the message to. */
+  document.getElementById('share').addEventListener('click', async () => {
+    const link = encodeFridge(state.fridge)
+    if (!link) {
+      note(state.fridge.length
+        ? 'Too much in the fridge to fit in a link. Use Back up instead.'
+        : 'Nothing to share yet.')
+      return
+    }
+    try {
+      if (navigator.share) await navigator.share({ title: 'My fridge', url: link })
+      else { await navigator.clipboard.writeText(link); note('Link copied. Paste it to whoever you share a kitchen with.') }
+    } catch {
+      note('Couldn’t share that automatically — here it is: ' + link)
+    }
+  })
+
+  /* Somebody sent you theirs. Ask before overwriting: this replaces the
+     whole fridge, and nobody expects a link to do that silently.
+     
+     Checked on load and again on hashchange, because tapping a link when
+     the app is already open changes only the fragment — the page never
+     reloads, so nothing would happen at all. */
+  const offer = document.getElementById('sharedOffer')
+  let incoming = null
+
+  const dismissOffer = () => { offer.hidden = true; incoming = null; clearUrl() }
+
+  function checkForSharedFridge () {
+    incoming = decodeFromUrl()
+    if (!incoming?.length) { offer.hidden = true; return }
+    document.getElementById('sharedCount').textContent =
+      `${incoming.length} thing${incoming.length === 1 ? '' : 's'} in it.`
+    offer.hidden = false
+    offer.scrollIntoView({ block: 'nearest' })
+  }
+
+  document.getElementById('sharedLoad').addEventListener('click', () => {
+    if (incoming?.length) state.replaceFridge(incoming)
+    dismissOffer()
+  })
+  document.getElementById('sharedIgnore').addEventListener('click', dismissOffer)
+
+  window.addEventListener('hashchange', checkForSharedFridge)
+  checkForSharedFridge()
 
   const fileInput = document.getElementById('restoreFile')
   document.getElementById('restore').addEventListener('click', () => fileInput.click())
