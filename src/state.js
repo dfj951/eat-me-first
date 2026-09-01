@@ -63,13 +63,14 @@ function changed () {
    than an absurd countdown. */
 const NO_DATE = () => inDays(3650)
 
-export function addFood (key, { date, noDate = false, uses } = {}) {
+export function addFood (key, { date, noDate = false, uses, openEnded = false } = {}) {
   const food = FOODS[key]
   if (!food) return
   fridge.push({
     id: nextId++,
     key,
     noDate,
+    openEnded,
     date: noDate ? NO_DATE() : (date || inDays(Math.min(food.days, 14))),
     // How many meals this will stretch to. Offered as the typical amount
     // for a normal shop, but it's yours to set.
@@ -84,7 +85,7 @@ export function addFood (key, { date, noDate = false, uses } = {}) {
  * it, but the dates are still watched — and the plan says so plainly
  * rather than quietly ignoring it.
  */
-export function addUnknown (name, { date, role = null, noDate = false, uses = 1 } = {}) {
+export function addUnknown (name, { date, role = null, noDate = false, uses = 1, openEnded = false } = {}) {
   const clean = String(name).trim()
   if (!clean) return
   fridge.push({
@@ -92,6 +93,7 @@ export function addUnknown (name, { date, role = null, noDate = false, uses = 1 
     key: 'own:' + clean.toLowerCase(),
     label: clean,
     noDate,
+    openEnded,
     date: noDate ? NO_DATE() : (date || inDays(5)),
     uses,
     // Unset until you say what it is. Without a role no meal can place it.
@@ -112,6 +114,7 @@ export function updateItem (id, changes) {
     item.noDate = changes.noDate
     if (changes.noDate) item.date = NO_DATE()
   }
+  if ('openEnded' in changes) item.openEnded = changes.openEnded
   if (changes.date && !item.noDate) item.date = changes.date
   if (changes.uses) item.uses = Math.max(1, Math.min(20, changes.uses))
   if ('role' in changes) item.role = changes.role || null

@@ -47,7 +47,10 @@ function toStock (fridge) {
     // food you named yourself: the role you gave it, and what you call it
     role: item.role ?? null,
     label: item.label ?? null,
-    left: item.uses ?? FOODS[item.key]?.uses ?? 2,
+    // Open-ended: a bottle of oil, a jar of paste. It is simply there
+    // until you say otherwise, so it never depletes and never counts as
+    // "used up" — you can't finish what nobody is counting.
+    left: item.openEnded ? Infinity : (item.uses ?? FOODS[item.key]?.uses ?? 2),
     touched: false
   }))
 }

@@ -43,7 +43,11 @@ let pending = null
 
 const openAdd = food => { pending = { mode: 'add', food }; renderFridge() }
 const openNew = name => { pending = { mode: 'new', name }; renderFridge() }
-const openEdit = id => { pending = { mode: 'edit', id }; renderFridge() }
+const openEdit = id => {
+  const item = state.fridge.find(i => i.id === id)
+  pending = { mode: 'edit', id, noDate: !!item?.noDate, openEnded: !!item?.openEnded }
+  renderFridge()
+}
 const closePanel = () => { pending = null; renderFridge() }
 
 export function mountFridge () {
@@ -153,7 +157,15 @@ function roleMenu (selected) {
   </select>`
 }
 
-/** The add / edit panel, or nothing when there is nothing pending. */
+/**
+ * The add / edit panel.
+ *
+ * Two things can be waved away rather than filled in: the date, for
+ * anything that keeps far longer than you'll take to eat it, and the
+ * amount, for a bottle of oil or a jar of paste where counting meals is
+ * meaningless. Both are toggles, so you can skip either or both, and the
+ * choice sticks when you save.
+ */
 function renderPanel () {
   const host = document.getElementById('pendingHost')
   if (!pending) { host.innerHTML = ''; return }
@@ -169,6 +181,8 @@ function renderPanel () {
       : state.nameOf(item)
   const date = item ? item.date
     : pending.mode === 'add' ? state.suggestedDate(pending.food.key) : state.suggestedDate('')
+  const uses = item ? state.usesOf(item)
+    : pending.mode === 'add' ? pending.food.uses : 1
 
   host.innerHTML = `
     <div class="panel-form">
@@ -181,21 +195,20 @@ function renderPanel () {
            </div>`
         : `<p class="panel-name">${esc(name)}</p>`}
 
-      ${item?.noDate
-        ? '<p class="hint">No date on this one — it just sits in the fridge until you use it.</p>'
+      ${pending.noDate
+        ? '<p class="hint">No date — it just sits there until you use it.</p>'
         : `<div class="field">
              <label for="panelDate">When does it go off?</label>
              <input class="control" id="panelDate" type="date" value="${date}">
            </div>`}
 
-      <div class="field">
-        <label for="panelUses">How many meals' worth?</label>
-        <input class="control" id="panelUses" type="number" min="1" max="20"
-               inputmode="numeric" value="${
-                 item ? state.usesOf(item)
-                   : pending.mode === 'add' ? pending.food.uses : 1
-               }">
-      </div>
+      ${pending.openEnded
+        ? '<p class="hint">No amount — it stays in the list until you remove it.</p>'
+        : `<div class="field">
+             <label for="panelUses">How many meals' worth?</label>
+             <input class="control" id="panelUses" type="number" min="1" max="20"
+                    inputmode="numeric" value="${uses}">
+           </div>`}
 
       ${own
         ? `<div class="field"><label for="panelRole">What is it?</label>${roleMenu(item?.role ?? '')}</div>`
@@ -207,46 +220,44 @@ function renderPanel () {
       </div>
 
       <button class="linkish" id="panelNoDate" type="button">${
-        item?.noDate ? 'Actually, give it a date' : 'Add without a date — it keeps'
+        pending.noDate ? 'Actually, give it a date' : 'No date — it keeps'
+      }</button>
+      <button class="linkish" id="panelOpen" type="button">${
+        pending.openEnded ? 'Actually, count the meals' : 'No amount — I’ll remove it when it’s gone'
       }</button>
     </div>`
 
   const val = id => document.getElementById(id)?.value
+
   document.getElementById('panelCancel').addEventListener('click', closePanel)
 
+  // the two shortcuts just flip a switch; nothing is saved until you press Add
   document.getElementById('panelNoDate').addEventListener('click', () => {
-    const role = val('panelRole') === 'none' ? null : val('panelRole') || null
-
-    const uses = Number(val('panelUses'))
-
-    if (pending.mode === 'add') state.addFood(pending.food.key, { noDate: true, uses })
-    else if (pending.mode === 'new') state.addUnknown(val('panelName'), { role, noDate: true, uses })
-    else {
-      // in edit mode this toggles: off puts the suggested date back
-      const turningOff = item.noDate
-      state.updateItem(pending.id, {
-        label: val('panelName'),
-        uses: Number(val('panelUses')),
-        role,
-        noDate: !turningOff,
-        ...(turningOff ? { date: state.suggestedDate(item.key) } : {})
-      })
-    }
-    closePanel()
+    pending = { ...pending, noDate: !pending.noDate }
+    renderFridge()
   })
+  document.getElementById('panelOpen').addEventListener('click', () => {
+    pending = { ...pending, openEnded: !pending.openEnded }
+    renderFridge()
+  })
+
   document.getElementById('panelSave').addEventListener('click', () => {
-    const date = val('panelDate')
     const role = val('panelRole') === 'none' ? null : val('panelRole') || null
+    const opts = {
+      date: pending.noDate ? null : val('panelDate'),
+      noDate: !!pending.noDate,
+      openEnded: !!pending.openEnded,
+      uses: pending.openEnded ? undefined : Number(val('panelUses'))
+    }
 
-    const uses = Number(val('panelUses'))
+    if (pending.mode === 'add') state.addFood(pending.food.key, opts)
+    else if (pending.mode === 'new') state.addUnknown(val('panelName'), { ...opts, role })
+    else state.updateItem(pending.id, { ...opts, label: val('panelName'), role })
 
-    if (pending.mode === 'add') state.addFood(pending.food.key, { date, uses })
-    else if (pending.mode === 'new') state.addUnknown(val('panelName'), { date, role, uses })
-    else state.updateItem(pending.id, { label: val('panelName'), date, uses, role })
     closePanel()
   })
 
-  document.getElementById(own ? 'panelName' : 'panelDate')?.focus()
+  document.getElementById(own ? 'panelName' : 'panelSave')?.focus()
 }
 
 /** Redraw the list. Called by main.js whenever the state changes. */
@@ -293,13 +304,15 @@ export function renderFridge () {
                     (item.role ?? (item.roleSet ? 'none' : '')) === value ? 'selected' : ''
                   }>${esc(text)}</option>`).join('')}
               </select>` : ''}
-            <span class="qty" title="Roughly how many meals this will stretch to">
-              <button type="button" data-less="${item.id}" aria-label="Less ${esc(name)}"
-                      ${uses <= 1 ? 'disabled' : ''}>&minus;</button>
-              <b>${uses}</b>
-              <button type="button" data-more="${item.id}" aria-label="More ${esc(name)}">+</button>
-              <span class="unit">meal${uses === 1 ? '' : 's'}</span>
-            </span>
+            ${item.openEnded
+              ? '<span class="unit">no amount</span>'
+              : `<span class="qty" title="Roughly how many meals this will stretch to">
+                   <button type="button" data-less="${item.id}" aria-label="Less ${esc(name)}"
+                           ${uses <= 1 ? 'disabled' : ''}>&minus;</button>
+                   <b>${uses}</b>
+                   <button type="button" data-more="${item.id}" aria-label="More ${esc(name)}">+</button>
+                   <span class="unit">meal${uses === 1 ? '' : 's'}</span>
+                 </span>`}
           </div>
         </div>
         <button class="snow" type="button" data-edit="${item.id}"
