@@ -124,7 +124,7 @@ export const SHAPES = [
         picked(p, 'sauce', 1)[0] || picked(p, 'dairy', 1)[0] || 'plain'
       return cap(front) + ' pasta'
     },
-    note: () => 'Sauce in the pan, pasta straight from the water into it, a splash of the water after.'
+    note: () => 'Undercook the pasta by a minute — it finishes in the sauce.'
   },
   {
     id: 'curry',
@@ -302,6 +302,108 @@ export const SHAPES = [
     note: () => 'The point is using the fruit up before it turns.'
   }
 ]
+
+/**
+ * HOW TO ACTUALLY COOK IT
+ *
+ * The one-line note is the thing worth knowing; these are the steps for
+ * when you're stood at the hob. Written per shape rather than per meal,
+ * so they cover every combination the shape can produce, and they name
+ * what you actually picked where it helps.
+ */
+export const STEPS = {
+  grill: p => [
+    (p.base ?? []).length ? 'Oven on at 220°C and get the ' + picked(p, 'base', 1)[0] + ' in first.' : 'Get a heavy pan properly hot.',
+    'Season the ' + (picked(p, 'protein', 1)[0] ?? 'meat') + ' on both sides.',
+    'Into the hot pan and leave it alone — moving it stops it browning.',
+    'Turn once, then rest it as long as you cooked it.'
+  ],
+  pasta: p => [
+    'Salt the water heavily and get the ' + (picked(p, 'base', 1)[0] ?? 'pasta') + ' on.',
+    'Meanwhile soften ' + (picked(p, 'veg', 2).join(' and ') || 'whatever needs cooking') + ' in a wide pan.',
+    'Pasta straight from the water into the pan, plus a splash of the water.',
+    'Toss it hard for a minute. That splash is what turns it into a sauce.'
+  ],
+  curry: p => [
+    'Onion first, gently, until soft and sweet rather than brown.',
+    'Spices or paste in and fry for a minute, until they smell of something.',
+    (picked(p, 'protein', 1)[0] ?? 'The protein') + ' in to colour, then the sauce.',
+    'Simmer with the lid off. Rice on now if you want it ready together.'
+  ],
+  stirfry: p => [
+    'Chop everything before the pan goes on. There is no time once it starts.',
+    'Hottest pan you have. Protein in one layer, and leave it to colour.',
+    'Hard veg next, softer veg after, thirty seconds each.',
+    'Base and sauce round the edge of the pan, toss, straight out.'
+  ],
+  traybake: p => [
+    'Oven at 200°C.',
+    'Everything in one tin with oil and salt, in a single layer.',
+    'Give it room — crowded, it steams instead of roasting.',
+    'Turn things once halfway. Forty minutes or so.'
+  ],
+  soup: p => [
+    'Sweat ' + (picked(p, 'veg', 2).join(' and ') || 'the veg') + ' in butter with the lid on, ten minutes.',
+    'Stock to just cover, then simmer until everything gives to a spoon.',
+    'Blend it smooth, or leave it as it is.',
+    'Taste it. It will want more salt than you expect.'
+  ],
+  salad: p => [
+    'Everything cold, and the leaves properly dry — wet ones shed dressing.',
+    'Dress the sturdy things first and let them sit a minute.',
+    'Leaves in last, turned through gently.',
+    'Oil, something sharp, salt. Taste, then adjust.'
+  ],
+  risotto: p => [
+    'Stock hot in a pan alongside. Cold stock stalls the rice.',
+    'Onion soft, rice in, stir it in the fat for a minute until it looks glassy.',
+    'Stock a ladle at a time, stirring now and then, about twenty minutes.',
+    'Off the heat, butter and cheese in, lid on for two minutes before serving.'
+  ],
+  omelette: p => [
+    'Beat the eggs properly and season them now, not after.',
+    'Cook ' + (picked(p, 'veg', 2).join(' and ') || 'any filling') + ' first and tip it out.',
+    'Low heat, butter, eggs in. Pull the set edges to the middle.',
+    'Filling on one half while the top is still glossy, fold, and out.'
+  ],
+  toastie: p => [
+    'Butter the outside of the bread, not the inside.',
+    'Filling in the middle and not too much, or it will not seal.',
+    'Medium heat and press it down. Too hot and the bread burns before the cheese goes.',
+    'Both sides golden, then wait a minute before cutting it.'
+  ],
+  toast: p => [
+    'Toast the bread properly. Pale toast is a waste of bread.',
+    'Topping on while it is still hot.',
+    'Salt, pepper, and something sharp if you have it.'
+  ],
+  bowl: p => [
+    'Oven at 200°C for anything that wants roasting.',
+    'Grain on — it will be ready about the same time.',
+    'Keep the raw things raw and cut them small.',
+    'Build it in the bowl rather than mixing, and dress it at the table.'
+  ],
+  sandwich: p => [
+    'Butter both slices right to the edges. It keeps the bread from going soggy.',
+    'Season anything wet — an unseasoned tomato tastes of nothing.',
+    'Press it together, cut it, eat it.'
+  ],
+  wrap: p => [
+    'Warm the wrap for ten seconds so it folds without splitting.',
+    'Filling in a line down the middle, not spread about.',
+    'Fold the two ends in first, then roll it tight from one side.'
+  ],
+  quesadilla: p => [
+    'Dry pan, medium heat, no oil.',
+    'Cheese right to the edges — that is what seals it.',
+    'Filling over one half, fold the other on top, press down.',
+    'Flip once when the underside is golden.'
+  ],
+  pudding: p => [
+    'Cut the fruit up and throw out anything that has turned.',
+    'Something creamy alongside, and honey if it needs it.'
+  ]
+}
 
 /**
  * Where the generated name would be daft, use the name everyone knows.

@@ -86,6 +86,9 @@ export function renderPlan () {
           <button class="nope" type="button" data-nope="${esc(tonight.meal.name)}">Not for me</button>
         </div>
         <p class="made">Made with ${esc(lower(tonight.uses))}.</p>
+        ${tonight.meal.steps?.length
+          ? `<ol class="steps">${tonight.meal.steps.map(step => `<li>${esc(step)}</li>`).join('')}</ol>`
+          : ''}
         <button class="btn cooked" type="button" id="cookedIt">I cooked this</button>
       </div>`
     : state.maxMins

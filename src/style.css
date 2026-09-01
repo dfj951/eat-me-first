@@ -567,6 +567,17 @@ button, input { font: inherit; color: inherit; }
 
 .made { margin: 13px 0 0; font-size: 13px; color: var(--faint); max-width: 58ch; }
 
+.steps {
+  margin: 15px 0 0;
+  padding: 0 0 0 20px;
+  max-width: 58ch;
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.steps li { margin: 5px 0; padding-left: 3px; }
+.steps li::marker { color: var(--faint); font-family: "Azeret Mono", monospace; font-size: 11px; }
+
 /* ── the week ───────────────────────────────────────────────────────── */
 
 .week { padding: 6px 0; }

@@ -19,7 +19,7 @@
  */
 
 import { FOODS, needsDefrosting } from '../data/foods.js'
-import { SHAPES, CLASSICS, slotFits } from '../data/mealShapes.js'
+import { SHAPES, CLASSICS, STEPS, slotFits } from '../data/mealShapes.js'
 import { daysLeft } from './dates.js'
 
 /** What rescuing one ingredient is worth, by how many days it has left. */
@@ -133,7 +133,7 @@ function buildFromMine (meal, stock, day) {
   return {
     chosen: { mine: got },
     score,
-    meal: { name: meal.name, mins: meal.mins ?? 30, note: 'One of yours.' }
+    meal: { name: meal.name, mins: meal.mins ?? 30, note: 'One of yours.', steps: [] }
   }
 }
 
@@ -202,7 +202,12 @@ export function planWeek (fridge, myMeals = [], disliked = [], limits = {}) {
         best = {
           ...attempt,
           shapeId: shape.id,
-          meal: { name, mins: shape.mins, note: shape.note(attempt.chosen) }
+          meal: {
+            name,
+            mins: shape.mins,
+            note: shape.note(attempt.chosen),
+            steps: STEPS[shape.id]?.(attempt.chosen) ?? []
+          }
         }
       }
     }
