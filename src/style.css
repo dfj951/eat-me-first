@@ -284,6 +284,25 @@ button, input { font: inherit; color: inherit; }
 .item .nm { min-width: 0; }
 .item .nm b { display: block; font-weight: 600; font-size: 14px; }
 .item .nm small { font-size: 11.5px; color: var(--faint); }
+
+/* days left and how much is left, on one line under the name */
+.sub { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; margin-top: 1px; }
+
+.qty { display: inline-flex; align-items: center; gap: 3px; }
+.qty button {
+  width: 17px; height: 17px; padding: 0; line-height: 1;
+  border: 1px solid var(--hair-strong); border-radius: 4px;
+  background: var(--surface-2); color: var(--muted);
+  font-size: 12px; cursor: pointer;
+}
+.qty button:hover:not([disabled]) { border-color: var(--accent); color: var(--accent); }
+.qty button[disabled] { opacity: .3; cursor: not-allowed; }
+.qty b {
+  display: inline-block !important; min-width: 11px; text-align: center;
+  font-family: "Azeret Mono", monospace; font-size: 11.5px !important;
+  font-weight: 500 !important; color: var(--text);
+}
+.qty .unit { font-size: 11px; color: var(--faint); }
 .item.u-now .nm small { color: var(--now); font-weight: 600; }
 .item.u-soon .nm small { color: var(--soon); }
 /* declared last so frozen beats urgency, whatever the date says */

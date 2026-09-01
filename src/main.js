@@ -9,11 +9,12 @@
 
 import './style.css'
 import { onChange } from './state.js'
-import { mountFridge, renderFridge } from './ui/fridge.js'
+import { mountFridge, renderFridge, renderChips } from './ui/fridge.js'
 import { mountMyMeals, renderMyMeals } from './ui/mymeals.js'
 import { renderPlan } from './ui/plan.js'
 
 function renderAll () {
+  renderChips()
   renderFridge()
   renderMyMeals()
   renderPlan()

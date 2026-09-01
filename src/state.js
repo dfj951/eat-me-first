@@ -11,10 +11,23 @@
 
 import { FOODS, freezeLife, thawLife } from './data/foods.js'
 import { inDays } from './lib/dates.js'
-import { loadFridge, saveFridge, loadMeals, saveMeals, clearFridge } from './lib/store.js'
+import { loadFridge, saveFridge, loadMeals, saveMeals, clearFridge,
+  loadRecent, saveRecent } from './lib/store.js'
 
 export const fridge = loadFridge()
 export const myMeals = loadMeals()
+
+/* What you've added lately, most recent first. Beats me guessing at what
+   you buy: after a week it's your actual shopping, not my list. */
+export const recent = loadRecent()
+const RECENT_MAX = 14
+
+function remember (key) {
+  const at = recent.indexOf(key)
+  if (at > -1) recent.splice(at, 1)
+  recent.unshift(key)
+  if (recent.length > RECENT_MAX) recent.length = RECENT_MAX
+}
 
 let nextId = Math.max(0, ...fridge.map(i => i.id ?? 0), ...myMeals.map(m => m.id ?? 0)) + 1
 
@@ -31,6 +44,7 @@ export function onChange (fn) {
 function changed () {
   saveFridge(fridge)
   saveMeals(myMeals)
+  saveRecent(recent)
   for (const fn of listeners) fn()
 }
 
@@ -40,7 +54,15 @@ function changed () {
 export function addFood (key) {
   const food = FOODS[key]
   if (!food) return
-  fridge.push({ id: nextId++, key, date: inDays(Math.min(food.days, 14)) })
+  fridge.push({
+    id: nextId++,
+    key,
+    date: inDays(Math.min(food.days, 14)),
+    // How many meals this will stretch to. Starts at the typical amount
+    // for a normal shop; you can say otherwise.
+    uses: food.uses
+  })
+  remember(key)
   changed()
 }
 
@@ -56,10 +78,22 @@ export function addUnknown (name) {
     id: nextId++,
     key: 'own:' + clean.toLowerCase(),
     label: clean,
-    date: inDays(5)
+    date: inDays(5),
+    uses: 1
   })
   changed()
 }
+
+/** How many meals' worth is left. Never below one. */
+export function setUses (id, amount) {
+  const item = fridge.find(i => i.id === id)
+  if (!item) return
+  item.uses = Math.max(1, Math.min(20, amount))
+  changed()
+}
+
+/** This item's amount, falling back to the usual for that food. */
+export const usesOf = item => item.uses ?? FOODS[item.key]?.uses ?? 2
 
 export function removeItem (id) {
   const at = fridge.findIndex(i => i.id === id)

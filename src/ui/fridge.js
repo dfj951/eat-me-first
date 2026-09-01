@@ -9,11 +9,15 @@ import { daysLeft, daysText, urgency, shortDate } from '../lib/dates.js'
 import * as state from '../state.js'
 import { escapeHtml as esc } from './html.js'
 
-const QUICK_ADD = ['milk', 'eggs', 'chicken', 'spinach', 'tomato', 'bread',
-  'cheddar', 'mushroom', 'yoghurt', 'pepper', 'potato', 'onion',
-  // Cupboard staples are worth adding once. They keep for a year so they
-  // stay in the list, and the planner only cooks with what it can see.
-  'pasta', 'rice', 'tintom', 'beans']
+/**
+ * What the chips show before you've added anything. Once you have, your
+ * own recent additions take over — after a week it's your actual
+ * shopping rather than my guess at it.
+ */
+const STARTERS = ['milk', 'eggs', 'chicken', 'spinach', 'tomato', 'bread',
+  'cheddar', 'mushroom', 'pasta', 'rice', 'potato', 'onion']
+
+const CHIP_COUNT = 12
 
 let matches = []
 let highlighted = -1
@@ -90,19 +94,34 @@ export function mountFridge () {
     if (!e.target.closest('.finder')) close()
   })
 
-  /* ── one tap for the things that actually rot ────────────────────── */
-
-  const chips = document.getElementById('chips')
-  chips.innerHTML = QUICK_ADD
-    .map(key => `<button class="chip" type="button" data-k="${key}">${esc(FOODS[key].label)}</button>`)
-    .join('')
-  chips.addEventListener('click', e => {
+  document.getElementById('chips').addEventListener('click', e => {
     const chip = e.target.closest('.chip')
     if (chip) state.addFood(chip.dataset.k)
   })
 
   document.getElementById('empty')
     .addEventListener('click', () => state.emptyFridge())
+}
+
+/** One tap for whatever you keep buying, padded with basics early on. */
+export function renderChips () {
+  const seen = new Set()
+  const keys = []
+
+  for (const key of [...state.recent, ...STARTERS]) {
+    if (FOODS[key] && !seen.has(key)) {
+      seen.add(key)
+      keys.push(key)
+    }
+    if (keys.length === CHIP_COUNT) break
+  }
+
+  document.getElementById('chipsLabel').textContent =
+    state.recent.length ? 'Recently added' : 'To get you started'
+
+  document.getElementById('chips').innerHTML = keys
+    .map(key => `<button class="chip" type="button" data-k="${key}">${esc(FOODS[key].label)}</button>`)
+    .join('')
 }
 
 /** Redraw the list. Called by main.js whenever the state changes. */
@@ -125,6 +144,7 @@ export function renderFridge () {
   host.innerHTML = `<div class="items">${sorted.map(item => {
     const days = daysLeft(item.date)
     const name = state.nameOf(item)
+    const uses = state.usesOf(item)
     const freezable = canFreeze(item.key)
     const tip = item.frozen
       ? 'Take out of the freezer'
@@ -133,10 +153,21 @@ export function renderFridge () {
     return `
       <div class="item u-${urgency(days)}${item.frozen ? ' frozen' : ''}">
         <span class="tick"></span>
-        <span class="nm">
+        <div class="nm">
           <b>${esc(name)}</b>
-          <small>${item.frozen ? `frozen &middot; good to ${shortDate(item.date)}` : esc(daysText(days))}</small>
-        </span>
+          <div class="sub">
+            <small>${item.frozen
+              ? `frozen &middot; good to ${shortDate(item.date)}`
+              : esc(daysText(days))}</small>
+            <span class="qty" title="Roughly how many meals this will stretch to">
+              <button type="button" data-less="${item.id}" aria-label="Less ${esc(name)}"
+                      ${uses <= 1 ? 'disabled' : ''}>&minus;</button>
+              <b>${uses}</b>
+              <button type="button" data-more="${item.id}" aria-label="More ${esc(name)}">+</button>
+              <span class="unit">meal${uses === 1 ? '' : 's'}</span>
+            </span>
+          </div>
+        </div>
         <input type="date" value="${item.date}" data-date="${item.id}"
                aria-label="Date for ${esc(name)}">
         <button class="snow" type="button" data-freeze="${item.id}"
@@ -149,6 +180,15 @@ export function renderFridge () {
 
   host.querySelectorAll('[data-date]').forEach(input =>
     input.addEventListener('change', () => state.setDate(Number(input.dataset.date), input.value)))
+
+  const step = (button, attr, by) => {
+    const id = Number(button.dataset[attr])
+    state.setUses(id, state.usesOf(state.fridge.find(i => i.id === id)) + by)
+  }
+  host.querySelectorAll('[data-less]').forEach(b =>
+    b.addEventListener('click', () => step(b, 'less', -1)))
+  host.querySelectorAll('[data-more]').forEach(b =>
+    b.addEventListener('click', () => step(b, 'more', +1)))
 
   host.querySelectorAll('[data-freeze]').forEach(button =>
     button.addEventListener('click', () => {

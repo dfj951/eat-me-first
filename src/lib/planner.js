@@ -41,7 +41,7 @@ function toStock (fridge) {
     key: item.key,
     expiresIn: daysLeft(item.date),
     frozen: !!item.frozen,
-    left: FOODS[item.key]?.uses ?? 2,
+    left: item.uses ?? FOODS[item.key]?.uses ?? 2,
     touched: false
   }))
 }
