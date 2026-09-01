@@ -9,14 +9,9 @@ import { daysLeft, daysText, urgency, shortDate } from '../lib/dates.js'
 import * as state from '../state.js'
 import { escapeHtml as esc } from './html.js'
 
-/**
- * What the chips show before you've added anything. Once you have, your
- * own recent additions take over — after a week it's your actual
- * shopping rather than my guess at it.
- */
-const STARTERS = ['milk', 'eggs', 'chicken', 'spinach', 'tomato', 'bread',
-  'cheddar', 'mushroom', 'pasta', 'rice', 'potato', 'onion']
-
+/* The chips are only ever your own recent additions — there is no list
+   of suggestions to wade through. Until you have added something the
+   whole row stays hidden rather than showing my guess at what you buy. */
 const CHIP_COUNT = 12
 
 /* What a hand-typed food can be, in the words a person would use rather
@@ -132,34 +127,23 @@ export function mountFridge () {
     .addEventListener('click', () => state.emptyFridge())
 }
 
-/** One tap for whatever you keep buying, padded with basics early on. */
+/** One tap for whatever you keep buying. Hidden until you've bought something. */
 export function renderChips () {
-  const seen = new Set()
-  const keys = []
+  const block = document.getElementById('chipsBlock')
+  const keys = state.recent.filter(key => FOODS[key]).slice(0, CHIP_COUNT)
 
-  for (const key of [...state.recent, ...STARTERS]) {
-    if (FOODS[key] && !seen.has(key)) {
-      seen.add(key)
-      keys.push(key)
-    }
-    if (keys.length === CHIP_COUNT) break
+  block.hidden = keys.length === 0
+  if (!keys.length) {
+    document.getElementById('chips').innerHTML = ''
+    return
   }
-
-  document.getElementById('chipsLabel').textContent =
-    state.recent.length ? 'Recently added' : 'To get you started'
-
-  // Only your own recents get a cross. The starter suggestions aren't
-  // yours to remove — they disappear on their own as you add things.
-  const mine = new Set(state.recent)
 
   document.getElementById('chips').innerHTML = keys.map(key => {
     const label = esc(FOODS[key].label)
     return `<span class="chip">
       <button class="chip-add" type="button" data-k="${key}">${label}</button>
-      ${mine.has(key)
-        ? `<button class="chip-x" type="button" data-forget="${key}"
-                   aria-label="Remove ${label} from recently added">&times;</button>`
-        : ''}
+      <button class="chip-x" type="button" data-forget="${key}"
+              aria-label="Remove ${label} from recently added">&times;</button>
     </span>`
   }).join('')
 }
