@@ -275,15 +275,11 @@ export function renderFridge () {
             </span>
           </div>
         </div>
-        <input type="date" value="${item.date}" data-date="${item.id}"
-               aria-label="Date for ${esc(name)}">
+        <button class="snow" type="button" data-edit="${item.id}"
+                title="Edit ${esc(name)}" aria-label="Edit ${esc(name)}">&#9998;</button>
         <button class="snow" type="button" data-freeze="${item.id}"
                 ${item.frozen ? 'data-on="1"' : ''} ${freezable || item.frozen ? '' : 'disabled'}
                 title="${esc(tip)}" aria-label="${item.frozen ? 'Thaw' : 'Freeze'} ${esc(name)}">&#10052;</button>
-        ${state.isUnknown(item)
-          ? `<button class="snow" type="button" data-edit="${item.id}"
-                     title="Edit ${esc(name)}" aria-label="Edit ${esc(name)}">&#9998;</button>`
-          : ''}
         <button class="bin" type="button" data-remove="${item.id}"
                 aria-label="Remove ${esc(name)}">&times;</button>
       </div>`
@@ -295,9 +291,6 @@ export function renderFridge () {
   host.querySelectorAll('[data-role]').forEach(select =>
     select.addEventListener('change', () =>
       state.setRole(Number(select.dataset.role), select.value === 'none' ? null : select.value)))
-
-  host.querySelectorAll('[data-date]').forEach(input =>
-    input.addEventListener('change', () => state.setDate(Number(input.dataset.date), input.value)))
 
   const step = (button, attr, by) => {
     const id = Number(button.dataset[attr])
