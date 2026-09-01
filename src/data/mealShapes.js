@@ -81,6 +81,32 @@ const join = list =>
 const picked = (p, kind, n = 9) =>
   (p[kind] ?? []).slice(0, n).map(item => item.label ? item.label.toLowerCase() : cookName(item.key))
 
+/**
+ * The base, when the shape's own name doesn't already give it away.
+ *
+ * A "salad" that is half pasta is a pasta salad, and saying so is the
+ * difference between a name and a small lie. `implied` lists the bases
+ * the shape word already covers — rice in a risotto, bread in a
+ * sandwich — so those stay quiet.
+ *
+ * Two forms, because English wants different words in different places:
+ * "noodle stir fry", but "curry with noodles".
+ */
+const theBase = (p, implied = []) => {
+  const item = (p.base ?? [])[0]
+  return !item?.key || implied.includes(item.key) ? null : item
+}
+/** Sits in front of the shape word: "noodle bowl". */
+const baseAs = (p, implied = []) => {
+  const item = theBase(p, implied)
+  return item ? (item.label ? item.label.toLowerCase() : cookName(item.key)) : ''
+}
+/** Stands on its own after a preposition: "on crackers". */
+const baseThing = (p, implied = []) => {
+  const item = theBase(p, implied)
+  return item ? (item.label ? item.label.toLowerCase() : labelOf(item.key).toLowerCase()) : ''
+}
+
 /* ── the shapes a dinner comes in ──────────────────────────────────── */
 
 export const SHAPES = [
@@ -122,7 +148,7 @@ export const SHAPES = [
     name: p => {
       const front = join([...picked(p, 'protein', 1), ...picked(p, 'veg', 1)]) ||
         picked(p, 'sauce', 1)[0] || picked(p, 'dairy', 1)[0] || 'plain'
-      return cap(front) + ' pasta'
+      return cap(front) + ' ' + (baseAs(p, ['pasta']) || 'pasta')
     },
     note: () => 'Undercook the pasta by a minute — it finishes in the sauce.'
   },
@@ -136,7 +162,11 @@ export const SHAPES = [
       { kind: 'sauce', min: 1, max: 1, only: ['coconutmilk', 'tintom', 'currypaste'] },
       { kind: 'aroma', min: 0, max: 2, only: ['garlic', 'ginger', 'chilli', 'coriander'] }
     ],
-    name: p => cap(join([...picked(p, 'protein', 1), ...picked(p, 'veg', 1)])) + ' curry',
+    name: p => {
+      const noodles = baseThing(p, ['rice'])
+      return cap(join([...picked(p, 'protein', 1), ...picked(p, 'veg', 1)])) +
+        ' curry' + (noodles ? ' with ' + noodles : '')
+    },
     note: () => 'Fry the spices until they smell of something before anything else goes in.'
   },
   {
@@ -148,7 +178,11 @@ export const SHAPES = [
       { kind: 'veg', min: 1, max: 3, only: ['pepper', 'broccoli', 'carrot', 'cabbage', 'mushroom', 'greenbeans', 'sugarsnap', 'peas', 'courgette', 'springonion', 'spinach', 'sweetcorn'] },
       { kind: 'aroma', min: 0, max: 2, only: ['garlic', 'ginger', 'chilli', 'springonion'] }
     ],
-    name: p => cap(join([...picked(p, 'protein', 1), ...picked(p, 'veg', 1)])) + ' stir fry',
+    name: p => {
+      const base = baseAs(p)
+      return cap(join([...picked(p, 'protein', 1), ...picked(p, 'veg', 1)])) +
+        (base ? ' ' + base : '') + ' stir fry'
+    },
     note: p => 'Everything chopped before the pan gets hot. Protein first, hard veg next' +
       ((p.veg ?? []).some(v => LEAFY.has(v.key)) ? ', anything leafy in the last thirty seconds.' : '.')
   },
@@ -162,7 +196,11 @@ export const SHAPES = [
       { kind: 'sauce', min: 0, max: 1, only: ['tintom'] },
       { kind: 'dairy', min: 0, max: 1, only: ['mozzarella', 'feta', 'cheddar', 'parmesan'] }
     ],
-    name: p => cap(picked(p, 'protein', 1)[0] ?? 'vegetable') + ' traybake',
+    name: p => {
+      const base = baseAs(p)
+      return cap(picked(p, 'protein', 1)[0] ?? 'vegetable') +
+        (base ? ' and ' + base : '') + ' traybake'
+    },
     note: () => "One tin, hot oven, and don't crowd it or it steams instead of roasting."
   },
   {
@@ -186,7 +224,12 @@ export const SHAPES = [
       { kind: 'base', min: 0, max: 1, only: ['couscous', 'bread', 'potato', 'pasta'] },
       { kind: 'aroma', min: 0, max: 1, only: ['lemon', 'mint', 'basil', 'parsley'] }
     ],
-    name: p => cap(join([...picked(p, 'protein', 1), ...picked(p, 'veg', 1)])) + ' salad',
+    name: p => {
+      // bread in a salad is croutons, not the point of it
+      const base = baseAs(p, ['bread'])
+      return cap(join([...picked(p, 'protein', 1), ...picked(p, 'veg', 1)])) +
+        (base ? ' ' + base : '') + ' salad'
+    },
     note: () => 'Dress it at the last minute or the leaves go sad.'
   },
   {
@@ -237,7 +280,11 @@ export const SHAPES = [
       { kind: 'veg', min: 0, max: 2, only: ['lettuce', 'tomato', 'cucumber', 'rocket', 'watercress', 'avocado', 'springonion', 'pepper'] },
       { kind: 'sauce', min: 0, max: 1, only: ['mayo', 'harissa', 'pesto'] }
     ],
-    name: p => cap(picked(p, 'protein', 1)[0] ?? 'a') + ' sandwich',
+    name: p => {
+      const on = baseThing(p, ['bread'])
+      const filling = cap(picked(p, 'protein', 1)[0] ?? 'a')
+      return on ? `${filling} on ${on}` : `${filling} sandwich`
+    },
     note: () => 'Assembly, not cooking. Season the tomato if there is one.'
   },
   {
@@ -250,7 +297,10 @@ export const SHAPES = [
       { kind: 'dairy', min: 0, max: 1, only: ['cheddar', 'feta', 'yoghurt'] },
       { kind: 'sauce', min: 0, max: 1, only: ['harissa', 'mayo', 'tahini', 'pesto'] }
     ],
-    name: p => cap(picked(p, 'protein', 1)[0] ?? 'veg') + ' wrap',
+    name: p => {
+      const base = baseAs(p, ['tortilla'])
+      return cap(picked(p, 'protein', 1)[0] ?? 'veg') + (base ? ' ' + base : '') + ' wrap'
+    },
     note: () => 'Warm the wrap for ten seconds and it stops splitting.'
   },
   {
@@ -286,7 +336,11 @@ export const SHAPES = [
       { kind: 'dairy', min: 0, max: 1, only: ['feta', 'yoghurt', 'halloumi'] },
       { kind: 'aroma', min: 0, max: 2, only: ['lemon', 'lime', 'coriander', 'chilli', 'garlic'] }
     ],
-    name: p => cap(join([...picked(p, 'protein', 1), ...picked(p, 'veg', 1)])) + ' bowl',
+    name: p => {
+      const base = baseAs(p)
+      return cap(join([...picked(p, 'protein', 1), ...picked(p, 'veg', 1)])) +
+        (base ? ' ' + base : '') + ' bowl'
+    },
     note: () => 'Roast what wants roasting, keep the rest raw, and build it in the bowl.'
   },
   {
