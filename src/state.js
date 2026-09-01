@@ -121,6 +121,13 @@ export function updateItem (id, changes) {
   changed()
 }
 
+/** Drop something from the recently-added chips. It stays searchable. */
+export function forgetRecent (key) {
+  const at = recent.indexOf(key)
+  if (at > -1) recent.splice(at, 1)
+  changed()
+}
+
 /** What kind of thing a hand-typed food is, so meals can use it. */
 export function setRole (id, role) {
   const item = fridge.find(i => i.id === id)

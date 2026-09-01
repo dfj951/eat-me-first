@@ -244,15 +244,30 @@ button, input { font: inherit; color: inherit; }
 
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip {
+  display: inline-flex;
+  align-items: stretch;
   border: 1px solid var(--hair-strong);
   background: var(--surface-2);
-  color: var(--muted);
   border-radius: 20px;
-  padding: 4px 11px;
+  overflow: hidden;
+}
+.chip:hover { border-color: var(--accent); }
+.chip button {
+  background: none;
+  border: 0;
+  color: var(--muted);
   font-size: 12.5px;
   cursor: pointer;
 }
-.chip:hover { border-color: var(--accent); color: var(--accent); }
+.chip-add { padding: 4px 11px; }
+.chip-add:hover { color: var(--accent); }
+.chip-x {
+  padding: 3px 9px 3px 1px;
+  color: var(--faint);
+  font-size: 14px;
+  line-height: 1;
+}
+.chip-x:hover { color: var(--now); }
 
 /* ── the fridge list ────────────────────────────────────────────────── */
 

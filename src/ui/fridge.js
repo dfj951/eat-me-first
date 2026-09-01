@@ -121,8 +121,11 @@ export function mountFridge () {
   })
 
   document.getElementById('chips').addEventListener('click', e => {
-    const chip = e.target.closest('.chip')
-    if (chip) openAdd(FOODS[chip.dataset.k])
+    const forget = e.target.closest('[data-forget]')
+    if (forget) return state.forgetRecent(forget.dataset.forget)
+
+    const add = e.target.closest('[data-k]')
+    if (add) openAdd(FOODS[add.dataset.k])
   })
 
   document.getElementById('empty')
@@ -145,9 +148,20 @@ export function renderChips () {
   document.getElementById('chipsLabel').textContent =
     state.recent.length ? 'Recently added' : 'To get you started'
 
-  document.getElementById('chips').innerHTML = keys
-    .map(key => `<button class="chip" type="button" data-k="${key}">${esc(FOODS[key].label)}</button>`)
-    .join('')
+  // Only your own recents get a cross. The starter suggestions aren't
+  // yours to remove — they disappear on their own as you add things.
+  const mine = new Set(state.recent)
+
+  document.getElementById('chips').innerHTML = keys.map(key => {
+    const label = esc(FOODS[key].label)
+    return `<span class="chip">
+      <button class="chip-add" type="button" data-k="${key}">${label}</button>
+      ${mine.has(key)
+        ? `<button class="chip-x" type="button" data-forget="${key}"
+                   aria-label="Remove ${label} from recently added">&times;</button>`
+        : ''}
+    </span>`
+  }).join('')
 }
 
 function roleMenu (selected) {
