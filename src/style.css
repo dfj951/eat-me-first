@@ -457,6 +457,19 @@ button, input { font: inherit; color: inherit; }
 .nope:hover { opacity: 1; border-color: var(--now); color: var(--now); }
 .tonight .nope { margin-left: auto; }
 
+.undo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px 11px 22px;
+  border-bottom: 1px solid var(--hair);
+  background: var(--surface-2);
+  font-size: 13px;
+  color: var(--muted);
+}
+.undo span { flex: 1; min-width: 0; }
+.undo b { color: var(--text); font-weight: 600; }
+
 .turned-down summary {
   cursor: pointer;
   font-size: 13px;

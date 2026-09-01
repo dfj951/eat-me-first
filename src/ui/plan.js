@@ -30,6 +30,17 @@ export function renderPlan () {
   }
 
   const { days, wasted } = planWeek(state.fridge, state.myMeals, state.disliked)
+
+  /* Undo sits at the top of the plan, right where the tap happened.
+     It stays put until it's used or waved away — a strip that vanishes on
+     a timer is no use to someone who has just looked up from the hob. */
+  const undo = state.lastDismissed
+    ? `<div class="undo">
+        <span>Turned down <b>${esc(state.lastDismissed)}</b>. It won’t be suggested again.</span>
+        <button class="btn-ghost tiny" type="button" data-undo="${esc(state.lastDismissed)}">Undo</button>
+        <button class="bin" type="button" data-undo-close="1" aria-label="Dismiss">&times;</button>
+      </div>`
+    : ''
   const tonight = days[0]
   const now = new Date()
 
@@ -154,11 +165,17 @@ export function renderPlan () {
 
   const week = `<div class="week">${rows.join('')}</div>`
 
-  out.innerHTML = head + risk + unknownNote + week
+  out.innerHTML = undo + head + risk + unknownNote + week
 
   out.querySelectorAll('[data-freeze]').forEach(button =>
     button.addEventListener('click', () => state.freeze(Number(button.dataset.freeze))))
 
   out.querySelectorAll('[data-nope]').forEach(button =>
     button.addEventListener('click', () => state.dislike(button.dataset.nope)))
+
+  out.querySelectorAll('[data-undo]').forEach(button =>
+    button.addEventListener('click', () => state.allow(button.dataset.undo)))
+
+  out.querySelectorAll('[data-undo-close]').forEach(button =>
+    button.addEventListener('click', () => state.clearUndo()))
 }

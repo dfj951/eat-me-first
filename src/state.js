@@ -140,14 +140,26 @@ export function emptyFridge () {
 
 /* ── meals you'd rather not be offered ─────────────────────────────── */
 
+/* The most recent one, so the screen can offer an immediate undo rather
+   than making someone hunt for the list after a mistaken tap. */
+export let lastDismissed = null
+
 export function dislike (name) {
   if (name && !disliked.includes(name)) disliked.push(name)
+  lastDismissed = name
   changed()
 }
 
 export function allow (name) {
   const at = disliked.indexOf(name)
   if (at > -1) disliked.splice(at, 1)
+  if (lastDismissed === name) lastDismissed = null
+  changed()
+}
+
+/** Hide the undo strip without putting the meal back. */
+export function clearUndo () {
+  lastDismissed = null
   changed()
 }
 
