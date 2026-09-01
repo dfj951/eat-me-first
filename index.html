@@ -63,6 +63,21 @@
 
         <div id="listHost"></div>
 
+        <details id="avoidBox">
+          <summary>Never suggest <span id="avoidCount"></span></summary>
+          <div class="stack">
+            <p class="hint">Food you don’t eat. It still gets tracked if it’s in your
+               fridge — you might be keeping it for somebody else — it just never
+               turns up in a meal.</p>
+            <div class="row-add">
+              <input class="control" id="avoidInput" placeholder="Mushrooms, olives…">
+              <button class="btn-ghost" id="avoidAdd" type="button">Add</button>
+            </div>
+            <div id="avoidPresets" class="chips"></div>
+            <div id="avoidBody"></div>
+          </div>
+        </details>
+
         <details id="listBox">
           <summary>Shopping list <span id="listCount"></span></summary>
           <div class="stack">

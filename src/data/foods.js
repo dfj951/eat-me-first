@@ -298,6 +298,23 @@ export function thawLife (key) {
 /** Cupboard staples are cheap to be missing — you probably have some. */
 export const isCupboard = key => FOODS[key]?.cat === 'cupboard'
 
+/**
+ * Shorthand for whole groups of food someone doesn't eat. Tapping one of
+ * these adds every food in it to the never-suggest list, which stays
+ * editable afterwards — a preset, not a mode you get locked into.
+ */
+export const DIET_GROUPS = {
+  Vegetarian: ['chicken', 'chickenthigh', 'cookedchicken', 'mince', 'porkmince',
+    'steak', 'lambchops', 'porkchops', 'gammon', 'turkey', 'burgers', 'sausages',
+    'bacon', 'ham', 'chorizo', 'salmon', 'whitefish', 'prawns', 'smokedsalmon',
+    'fishfingers', 'tuna'],
+  'No pork': ['bacon', 'ham', 'chorizo', 'porkchops', 'porkmince', 'sausages', 'gammon'],
+  'No fish': ['salmon', 'whitefish', 'prawns', 'smokedsalmon', 'fishfingers', 'tuna'],
+  'No dairy': ['milk', 'cream', 'cremefraiche', 'butter', 'cheddar', 'parmesan',
+    'mozzarella', 'feta', 'halloumi', 'creamcheese', 'yoghurt'],
+  'No gluten': ['pasta', 'bread', 'couscous', 'tortilla', 'gnocchi', 'pastry']
+}
+
 /** The shopping label. Falls back to the key for hand-typed items. */
 export const labelOf = key => FOODS[key]?.label ?? key
 

@@ -145,11 +145,18 @@ const flatten = chosen => Object.values(chosen).flat()
  * @param {Array} fridge  [{ id, key, date, frozen }]
  * @param {Array} myMeals [{ name, keys, mins }]
  * @param {Array} disliked meal names never to offer
+ * @param {object} limits { avoided: keys never to cook with, maxMins }
  * @returns {{ days, wasted }}
  */
-export function planWeek (fridge, myMeals = [], disliked = []) {
+export function planWeek (fridge, myMeals = [], disliked = [], limits = {}) {
   const unwanted = new Set(disliked)
-  const stock = toStock(fridge)
+  const offLimits = new Set(limits.avoided ?? [])
+  const maxMins = limits.maxMins ?? null
+
+  // Avoided food stays in stock so it still counts towards waste — you
+  // may be keeping it for somebody else — it just never gets cooked.
+  const stock = toStock(fridge).map(item =>
+    offLimits.has(item.key) ? { ...item, left: 0 } : item)
   const days = []
   const recentShapes = []       // don't repeat a shape two days running
   const recentNames = []        // and don't repeat a dish inside three days
@@ -169,6 +176,8 @@ export function planWeek (fridge, myMeals = [], disliked = []) {
     let best = null
 
     for (const meal of myMeals) {
+      if (maxMins && (meal.mins ?? 30) > maxMins) continue
+      if (meal.keys.some(k => offLimits.has(k))) continue
       const attempt = buildFromMine(meal, stock, day)
       if (!attempt || unwanted.has(attempt.meal.name)) continue
       attempt.score -= staleness(attempt.meal.name)
@@ -176,6 +185,7 @@ export function planWeek (fridge, myMeals = [], disliked = []) {
     }
 
     for (const shape of SHAPES) {
+      if (maxMins && shape.mins > maxMins) continue
       const attempt = buildFromShape(shape, stock, day)
       if (!attempt) continue
 

@@ -14,12 +14,14 @@ import { mountMyMeals, renderMyMeals } from './ui/mymeals.js'
 import { renderPlan } from './ui/plan.js'
 import { renderDisliked } from './ui/disliked.js'
 import { mountShopping, renderShopping } from './ui/shopping.js'
+import { mountAvoid, renderAvoid } from './ui/avoid.js'
 import * as state from './state.js'
 
 function renderAll () {
   renderChips()
   renderFridge()
   renderShopping()
+  renderAvoid()
   renderMyMeals()
   renderDisliked()
   renderPlan()
@@ -81,6 +83,7 @@ if ('serviceWorker' in navigator) {
 // Wire up the bits that only need doing once.
 mountFridge()
 mountShopping()
+mountAvoid()
 mountMyMeals()
 
 // Then redraw on every change, and once now to start.

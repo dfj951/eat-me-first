@@ -29,7 +29,8 @@ export function renderPlan () {
     return
   }
 
-  const { days, wasted } = planWeek(state.fridge, state.myMeals, state.disliked)
+  const { days, wasted } = planWeek(state.fridge, state.myMeals, state.disliked,
+    { avoided: state.avoided, maxMins: state.maxMins })
 
   /* Undo sits at the top of the plan, right where the tap happened.
      It stays put until it's used or waved away — a strip that vanishes on
@@ -39,6 +40,13 @@ export function renderPlan () {
     ? `<p class="tally">${meals} meal${meals === 1 ? '' : 's'} cooked${
         rescued ? ` &middot; <b>${rescued}</b> thing${rescued === 1 ? '' : 's'} rescued` : ''}</p>`
     : ''
+
+  /* How long you've got tonight. A shape that takes longer simply isn't
+     offered, which is more use than a list you have to read past. */
+  const TIMES = [[null, 'Any'], [15, '15 min'], [30, '30'], [45, '45']]
+  const timer = `<div class="times">${TIMES.map(([mins, label]) =>
+    `<button type="button" class="time${state.maxMins === mins ? ' on' : ''}"
+             data-mins="${mins ?? ''}">${label}</button>`).join('')}</div>`
 
   const undo = state.lastDismissed
     ? `<div class="undo">
@@ -67,7 +75,15 @@ export function renderPlan () {
         <p class="made">Made with ${esc(lower(tonight.uses))}.</p>
         <button class="btn cooked" type="button" id="cookedIt">I cooked this</button>
       </div>`
-    : `
+    : state.maxMins
+      ? `
+      <div class="tonight">
+        <p class="eyebrow">Cook tonight</p>
+        <h3>Nothing that quick</h3>
+        <p class="why">Nothing in your fridge makes a meal in under ${state.maxMins} minutes.
+           Give it longer above, or add a few more things.</p>
+      </div>`
+      : `
       <div class="tonight">
         <p class="eyebrow">Cook tonight</p>
         <h3>Nothing to build on yet</h3>
@@ -165,7 +181,7 @@ export function renderPlan () {
 
   const week = `<div class="week">${rows.join('')}</div>`
 
-  out.innerHTML = undo + tally + head + risk + unknownNote + week
+  out.innerHTML = undo + tally + timer + head + risk + unknownNote + week
 
   out.querySelectorAll('[data-freeze]').forEach(button =>
     button.addEventListener('click', () => state.freeze(Number(button.dataset.freeze))))
@@ -173,6 +189,10 @@ export function renderPlan () {
   // Closing over tonight rather than stashing ids in the markup
   document.getElementById('cookedIt')?.addEventListener('click', () =>
     state.cookMeal(tonight.meal.name, tonight.usedIds, tonight.saves))
+
+  out.querySelectorAll('[data-mins]').forEach(button =>
+    button.addEventListener('click', () =>
+      state.setMaxMins(button.dataset.mins ? Number(button.dataset.mins) : null)))
 
   out.querySelectorAll('[data-nope]').forEach(button =>
     button.addEventListener('click', () => state.dislike(button.dataset.nope)))

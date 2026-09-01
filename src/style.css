@@ -319,6 +319,24 @@ button, input { font: inherit; color: inherit; }
   color: var(--faint);
 }
 .tally b { color: var(--ok); }
+
+.times {
+  display: flex;
+  gap: 6px;
+  padding: 11px 22px;
+  border-bottom: 1px solid var(--hair);
+}
+.time {
+  border: 1px solid var(--hair-strong);
+  background: var(--surface-2);
+  color: var(--muted);
+  border-radius: 20px;
+  padding: 3px 12px;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.time:hover { border-color: var(--accent); color: var(--accent); }
+.time.on { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
 .linkish {
   background: none;
   border: 0;

@@ -16,6 +16,8 @@ const DISLIKE_KEY = 'eat-me-first/disliked'
 const HISTORY_KEY = 'eat-me-first/history'
 const BARCODE_KEY = 'eat-me-first/barcodes'
 const SHOPPING_KEY = 'eat-me-first/shopping'
+const AVOID_KEY = 'eat-me-first/avoided'
+const TIME_KEY = 'eat-me-first/maxmins'
 
 function read (key, fallback) {
   try {
@@ -83,6 +85,20 @@ export const loadShopping = () => {
 }
 
 export const saveShopping = list => write(SHOPPING_KEY, list)
+
+export const loadAvoided = () => {
+  const saved = read(AVOID_KEY, [])
+  return Array.isArray(saved) ? saved : []
+}
+
+export const saveAvoided = keys => write(AVOID_KEY, keys)
+
+export const loadMaxMins = () => {
+  const saved = read(TIME_KEY, null)
+  return typeof saved === 'number' ? saved : null
+}
+
+export const saveMaxMins = mins => write(TIME_KEY, mins)
 
 export function clearFridge () {
   try { localStorage.removeItem(FRIDGE_KEY) } catch { /* nothing to do */ }

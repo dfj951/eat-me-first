@@ -14,7 +14,8 @@ import { inDays, daysLeft } from './lib/dates.js'
 import { loadFridge, saveFridge, loadMeals, saveMeals, clearFridge,
   loadRecent, saveRecent, loadDislikes, saveDislikes,
   loadHistory, saveHistory, loadBarcodes, saveBarcodes,
-  loadShopping, saveShopping } from './lib/store.js'
+  loadShopping, saveShopping, loadAvoided, saveAvoided,
+  loadMaxMins, saveMaxMins } from './lib/store.js'
 
 export const fridge = loadFridge()
 export const myMeals = loadMeals()
@@ -45,6 +46,14 @@ export const barcodes = loadBarcodes()
    different thing entirely. */
 export const shopping = loadShopping()
 
+/* Foods never to build a meal around. They stay in the fridge and still
+   count towards waste if they go off — you might be keeping them for
+   somebody else — they just never turn up in a suggestion. */
+export const avoided = loadAvoided()
+
+/* How long you've got tonight, or null for no limit. */
+export let maxMins = loadMaxMins()
+
 function remember (key) {
   const at = recent.indexOf(key)
   if (at > -1) recent.splice(at, 1)
@@ -72,6 +81,8 @@ function changed () {
   saveHistory(history)
   saveBarcodes(barcodes)
   saveShopping(shopping)
+  saveAvoided(avoided)
+  saveMaxMins(maxMins)
   for (const fn of listeners) fn()
 }
 
@@ -206,6 +217,30 @@ export function importAll (data) {
   nextId = Math.max(0, ...fridge.map(i => i.id ?? 0), ...myMeals.map(m => m.id ?? 0)) + 1
   changed()
   return true
+}
+
+/* ── what you won't eat, and how long you've got ───────────────────── */
+
+export function avoid (key) {
+  if (key && !avoided.includes(key)) avoided.push(key)
+  changed()
+}
+
+export function unavoid (key) {
+  const at = avoided.indexOf(key)
+  if (at > -1) avoided.splice(at, 1)
+  changed()
+}
+
+/** Apply a whole group at once — vegetarian, no pork, and so on. */
+export function avoidGroup (keys) {
+  for (const key of keys) if (!avoided.includes(key)) avoided.push(key)
+  changed()
+}
+
+export function setMaxMins (mins) {
+  maxMins = mins || null
+  changed()
 }
 
 /* ── the shopping list ─────────────────────────────────────────────── */
