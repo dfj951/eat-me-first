@@ -78,8 +78,13 @@ export function mountFridge () {
 
     matches = searchFoods(typed)
 
+    // Each row needs an id so `aria-activedescendant` can point at it:
+    // arrowing down moves a highlight the eye can see, and without this
+    // a screen reader announces nothing at all as it moves.
     const rows = matches.map((food, i) => `
-      <button class="hit" type="button" data-i="${i}" ${i === highlighted ? 'data-hi="1"' : ''}>
+      <button class="hit" type="button" role="option" id="hit-${i}"
+              aria-selected="${i === highlighted}"
+              data-i="${i}" ${i === highlighted ? 'data-hi="1"' : ''}>
         <b>${esc(food.label)}</b>
         <span>keeps about ${food.days > 90 ? 'for ever' : food.days + ' days'}</span>
       </button>`)
@@ -89,7 +94,8 @@ export function mountFridge () {
     const several = typed.split(',').map(t => t.trim()).filter(Boolean)
     if (several.length > 1) {
       rows.push(`
-        <button class="hit bulk" type="button" data-bulk="1">
+        <button class="hit bulk" type="button" role="option" id="hit-bulk"
+                aria-selected="false" data-bulk="1">
           <b>Add all ${several.length}</b>
           <span>${esc(several.join(', '))}</span>
         </button>`)
@@ -97,7 +103,8 @@ export function mountFridge () {
 
     // Whatever they typed can always be added. Never a dead end.
     rows.push(`
-      <button class="hit own" type="button" data-own="1"
+      <button class="hit own" type="button" role="option" id="hit-${matches.length}"
+              aria-selected="${highlighted === matches.length}" data-own="1"
               ${highlighted === matches.length ? 'data-hi="1"' : ''}>
         <b>Add &ldquo;${esc(typed)}&rdquo;</b>
         <span>${matches.length ? 'something else' : 'not in the food list'}</span>
@@ -106,11 +113,14 @@ export function mountFridge () {
     hits.innerHTML = rows.join('')
     hits.dataset.open = '1'
     search.setAttribute('aria-expanded', 'true')
+    if (highlighted >= 0) search.setAttribute('aria-activedescendant', `hit-${highlighted}`)
+    else search.removeAttribute('aria-activedescendant')
   }
 
   function close () {
     hits.dataset.open = '0'
     search.setAttribute('aria-expanded', 'false')
+    search.removeAttribute('aria-activedescendant')
     highlighted = -1
   }
 
