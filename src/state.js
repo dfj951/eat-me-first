@@ -15,7 +15,8 @@ import { loadFridge, saveFridge, loadMeals, saveMeals, clearFridge,
   loadRecent, saveRecent, loadDislikes, saveDislikes,
   loadHistory, saveHistory, loadBarcodes, saveBarcodes,
   loadShopping, saveShopping, loadAvoided, saveAvoided,
-  loadMaxMins, saveMaxMins, loadHabits, saveHabits } from './lib/store.js'
+  loadMaxMins, saveMaxMins, loadHabits, saveHabits,
+  loadHousehold, saveHousehold } from './lib/store.js'
 
 export const fridge = loadFridge()
 export const myMeals = loadMeals()
@@ -60,6 +61,16 @@ export let maxMins = loadMaxMins()
    general figure does. */
 export const dateHabits = loadHabits()
 
+/* How many you're cooking for. Amounts are counted in meals for two —
+   that being what the shelf-life figures assume — so a household of
+   four gets through a bag of spinach twice as fast. */
+export let household = loadHousehold()
+
+export function setHousehold (n) {
+  household = Math.max(1, Math.min(8, n || 2))
+  changed()
+}
+
 function remember (key) {
   const at = recent.indexOf(key)
   if (at > -1) recent.splice(at, 1)
@@ -90,6 +101,7 @@ function changed () {
   saveAvoided(avoided)
   saveMaxMins(maxMins)
   saveHabits(dateHabits)
+  saveHousehold(household)
   for (const fn of listeners) fn()
 }
 

@@ -75,6 +75,12 @@
 
 * { box-sizing: border-box; }
 
+/* The `hidden` attribute sets display:none through the browser's own
+   stylesheet, which any author rule beats — so a .viewfinder styled
+   display:flex stayed on screen the whole time, camera box and all.
+   This makes hidden mean hidden. */
+[hidden] { display: none !important; }
+
 body {
   margin: 0;
   background: var(--paper);
@@ -337,11 +343,21 @@ button, input { font: inherit; color: inherit; }
 }
 .tally b { color: var(--ok); }
 
-.times {
+.controls {
   display: flex;
-  gap: 6px;
+  flex-wrap: wrap;
+  gap: 6px 20px;
   padding: 11px 22px;
   border-bottom: 1px solid var(--hair);
+}
+.times { display: flex; align-items: center; gap: 6px; }
+.ctl-label {
+  font-family: "Azeret Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-right: 2px;
 }
 .time {
   border: 1px solid var(--hair-strong);

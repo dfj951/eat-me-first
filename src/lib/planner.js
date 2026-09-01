@@ -145,13 +145,15 @@ const flatten = chosen => Object.values(chosen).flat()
  * @param {Array} fridge  [{ id, key, date, frozen }]
  * @param {Array} myMeals [{ name, keys, mins }]
  * @param {Array} disliked meal names never to offer
- * @param {object} limits { avoided: keys never to cook with, maxMins }
+ * @param {object} limits { avoided, maxMins, household }
  * @returns {{ days, wasted }}
  */
 export function planWeek (fridge, myMeals = [], disliked = [], limits = {}) {
   const unwanted = new Set(disliked)
   const offLimits = new Set(limits.avoided ?? [])
   const maxMins = limits.maxMins ?? null
+  // amounts are in meals for two, so four people eat through them twice as fast
+  const portions = Math.max(1, Math.round((limits.household ?? 2) / 2))
 
   // Avoided food stays in stock so it still counts towards waste — you
   // may be keeping it for somebody else — it just never gets cooked.
@@ -208,7 +210,7 @@ export function planWeek (fridge, myMeals = [], disliked = [], limits = {}) {
     if (best) {
       const used = flatten(best.chosen)
       for (const item of used) {
-        item.left--
+        item.left = Math.max(0, item.left - portions)
         item.touched = true
       }
 

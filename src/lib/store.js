@@ -19,6 +19,7 @@ const SHOPPING_KEY = 'eat-me-first/shopping'
 const AVOID_KEY = 'eat-me-first/avoided'
 const TIME_KEY = 'eat-me-first/maxmins'
 const HABITS_KEY = 'eat-me-first/datehabits'
+const HOUSEHOLD_KEY = 'eat-me-first/household'
 
 function read (key, fallback) {
   try {
@@ -107,6 +108,13 @@ export const loadHabits = () => {
 }
 
 export const saveHabits = habits => write(HABITS_KEY, habits)
+
+export const loadHousehold = () => {
+  const saved = read(HOUSEHOLD_KEY, 2)
+  return Number.isFinite(saved) && saved >= 1 && saved <= 8 ? saved : 2
+}
+
+export const saveHousehold = n => write(HOUSEHOLD_KEY, n)
 
 export function clearFridge () {
   try { localStorage.removeItem(FRIDGE_KEY) } catch { /* nothing to do */ }

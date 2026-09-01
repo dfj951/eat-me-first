@@ -1,7 +1,9 @@
 # Generates the app icons with no image library — just zlib and struct.
 #
-# The mark is the app's own visual signature: the three urgency ticks
-# that run down the side of the fridge list, tallest first.
+# The mark: a round piece of food with a bite taken out of it. Reads at
+# 32 pixels on a home screen, which the three coloured bars it replaced
+# did not. Drawn at three times the size and averaged down, because
+# without anti-aliasing a circle at this scale looks like a cog.
 #
 #   python tools/make-icons.py
 
@@ -9,35 +11,41 @@ import struct
 import zlib
 import os
 
-BG = (0x11, 0x18, 0x20)
-BARS = [
-    ((0xF0, 0x70, 0x5F), 0.56),   # going off now
-    ((0xDD, 0xA0, 0x44), 0.42),   # going off soon
-    ((0x5D, 0xBE, 0x87), 0.30),   # fine for a while
-]
+BG = (0x11, 0x18, 0x20)      # the app's ink
+FOOD = (0xF0, 0x70, 0x5F)    # the same red that means "eat this now"
+
+SS = 3                       # supersampling factor
 
 
 def draw(size):
-    """Return `size` rows of RGB bytes."""
-    rows = [[BG] * size for _ in range(size)]
+    """Return `size` rows of RGB tuples."""
+    big = size * SS
 
-    bar_w = max(2, round(size * 0.13))
-    gap = max(1, round(size * 0.075))
-    group_w = len(BARS) * bar_w + (len(BARS) - 1) * gap
-    left = (size - group_w) // 2
-    baseline = round(size * 0.78)
+    # the food itself
+    cx, cy, r = big * 0.46, big * 0.54, big * 0.34
+    # and the bite out of its top right
+    bx, by, br = big * 0.78, big * 0.26, big * 0.20
 
-    for i, (colour, height_ratio) in enumerate(BARS):
-        x0 = left + i * (bar_w + gap)
-        h = round(size * height_ratio)
-        y0 = baseline - h
-        for y in range(y0, baseline):
-            for x in range(x0, x0 + bar_w):
-                # nudge the corners in so the bars read as rounded
-                near_end = y < y0 + 1 or y >= baseline - 1
-                if near_end and (x == x0 or x == x0 + bar_w - 1):
-                    continue
-                rows[y][x] = colour
+    rows = []
+    for y in range(size):
+        row = []
+        for x in range(size):
+            hits = 0
+            for sy in range(SS):
+                for sx in range(SS):
+                    px = x * SS + sx + 0.5
+                    py = y * SS + sy + 0.5
+                    inside = (px - cx) ** 2 + (py - cy) ** 2 <= r * r
+                    bitten = (px - bx) ** 2 + (py - by) ** 2 <= br * br
+                    if inside and not bitten:
+                        hits += 1
+
+            # blend the food colour over the background by coverage
+            weight = hits / (SS * SS)
+            row.append(tuple(
+                round(BG[i] + (FOOD[i] - BG[i]) * weight) for i in range(3)
+            ))
+        rows.append(row)
     return rows
 
 
@@ -60,7 +68,7 @@ def write_png(path, rows):
 
     with open(path, 'wb') as f:
         f.write(png)
-    print('wrote', path, f'({len(png)} bytes)')
+    print('wrote', os.path.basename(path), f'({len(png)} bytes)')
 
 
 here = os.path.dirname(os.path.abspath(__file__))

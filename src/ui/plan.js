@@ -30,7 +30,7 @@ export function renderPlan () {
   }
 
   const { days, wasted } = planWeek(state.fridge, state.myMeals, state.disliked,
-    { avoided: state.avoided, maxMins: state.maxMins })
+    { avoided: state.avoided, maxMins: state.maxMins, household: state.household })
 
   /* Undo sits at the top of the plan, right where the tap happened.
      It stays put until it's used or waved away — a strip that vanishes on
@@ -44,9 +44,22 @@ export function renderPlan () {
   /* How long you've got tonight. A shape that takes longer simply isn't
      offered, which is more use than a list you have to read past. */
   const TIMES = [[null, 'Any'], [15, '15 min'], [30, '30'], [45, '45']]
-  const timer = `<div class="times">${TIMES.map(([mins, label]) =>
-    `<button type="button" class="time${state.maxMins === mins ? ' on' : ''}"
-             data-mins="${mins ?? ''}">${label}</button>`).join('')}</div>`
+  const PEOPLE = [1, 2, 3, 4]
+
+  const timer = `<div class="controls">
+    <div class="times">
+      <span class="ctl-label">Time</span>
+      ${TIMES.map(([mins, label]) =>
+        `<button type="button" class="time${state.maxMins === mins ? ' on' : ''}"
+                 data-mins="${mins ?? ''}">${label}</button>`).join('')}
+    </div>
+    <div class="times">
+      <span class="ctl-label">Cooking for</span>
+      ${PEOPLE.map(n =>
+        `<button type="button" class="time${state.household === n ? ' on' : ''}"
+                 data-people="${n}">${n}${n === 4 ? '+' : ''}</button>`).join('')}
+    </div>
+  </div>`
 
   const undo = state.lastDismissed
     ? `<div class="undo">
@@ -189,6 +202,9 @@ export function renderPlan () {
   // Closing over tonight rather than stashing ids in the markup
   document.getElementById('cookedIt')?.addEventListener('click', () =>
     state.cookMeal(tonight.meal.name, tonight.usedIds, tonight.saves))
+
+  out.querySelectorAll('[data-people]').forEach(button =>
+    button.addEventListener('click', () => state.setHousehold(Number(button.dataset.people))))
 
   out.querySelectorAll('[data-mins]').forEach(button =>
     button.addEventListener('click', () =>
